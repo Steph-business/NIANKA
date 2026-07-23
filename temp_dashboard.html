@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-surface" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NIANKA - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#92c1fe",
+                        "background": "#f8f9fa",
+                        "surface-bright": "#f8f9fa",
+                        "surface-variant": "#e1e3e4",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#edeeef",
+                        "on-secondary-fixed-variant": "#07497d",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#9c3c3b",
+                        "tertiary-fixed": "#ffdad7",
+                        "surface-container-highest": "#e1e3e4",
+                        "inverse-primary": "#63dca6",
+                        "secondary": "#2d6197",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#63dca6",
+                        "primary-fixed": "#81f9c1",
+                        "secondary-fixed": "#d2e4ff",
+                        "tertiary-container": "#bc5452",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-high": "#e7e8e9",
+                        "on-tertiary-container": "#fffbff",
+                        "on-tertiary-fixed": "#410005",
+                        "surface-container-low": "#f3f4f5",
+                        "secondary-fixed-dim": "#a0c9ff",
+                        "on-surface-variant": "#3d4a42",
+                        "surface-tint": "#006c49",
+                        "on-surface": "#191c1d",
+                        "inverse-surface": "#2e3132",
+                        "primary-container": "#00855b",
+                        "primary": "#006947",
+                        "surface": "#f8f9fa",
+                        "outline": "#6d7a71",
+                        "on-tertiary-fixed-variant": "#802728",
+                        "on-primary-fixed-variant": "#005236",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#002113",
+                        "on-primary-container": "#f5fff6",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#bccac0",
+                        "on-secondary-container": "#144f84",
+                        "on-background": "#191c1d",
+                        "on-secondary-fixed": "#001c37"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "container-max": "1280px",
+                        "lg": "40px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "xl": "64px",
+                        "sm": "16px",
+                        "md": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "caption": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "caption": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Subtle shadow lifting effect */
+        .premium-card {
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.02), 0 4px 12px 0 rgba(0,0,0,0.04), inset 0 0 0 1px rgba(255,255,255,1);
+        }
+    </style>
+</head>
+<body class="bg-surface h-full flex antialiased">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col py-lg px-sm h-full gap-xs bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant/30 shadow-md h-screen w-64 fixed left-0 top-0 z-40">
+<!-- Brand -->
+<div class="px-sm mb-lg flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined filled text-headline-md">science</span>
+</div>
+<div>
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary dark:text-primary-fixed-dim" style="font-size: 24px; line-height: 28px;">NIANKA</h1>
+<p class="font-caption text-caption text-on-surface-variant">Precision Food Safety</p>
+</div>
+</div>
+<!-- Main Navigation -->
+<div class="flex-1 flex flex-col gap-base">
+<a class="flex items-center gap-md px-sm py-xs bg-primary-container/10 text-primary dark:text-primary-fixed-dim font-bold rounded-lg cursor-pointer active:scale-[0.98] transition-transform duration-150" href="#">
+<span class="material-symbols-outlined filled">dashboard</span>
+<span class="font-label-sm text-label-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-body-md text-body-md">New Analysis</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-body-md text-body-md">History</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-body-md text-body-md">Reports</span>
+</a>
+</div>
+<!-- Footer Navigation -->
+<div class="flex flex-col gap-base pt-sm border-t border-outline-variant/30">
+<a class="flex items-center gap-md px-sm py-xs text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-body-md text-body-md">Profile</span>
+</a>
+<a class="flex items-center gap-md px-sm py-xs text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all rounded-lg cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+<!-- User Profile Snippet -->
+<div class="mt-md px-sm flex items-center gap-sm">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A professional headshot of a lab analyst, wearing a white coat in a bright, modern, minimalist setting. Soft natural lighting, premium corporate healthtech aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIJ919Tg4ZVeDf2Tq2bEOuiC0gKYmdSQV-_TUbX3UcMPQ5vuHJyloWbkPFibQ4j8VhkaCYglSsx3EZm8LmcIXRiF748MGtHRR5Cf1mqW1j1dZFIcCXLRr1ZNFmZHMOotNsRW9-vO5v8AjxFDrVz_wCFXskcKgbYfQRx_YO-P7geQGP3sD6kfCh0gEVCR1TSS7TeXMj6ItXlHDtWl0LqqT7HVx5SKUbkBMia6gHzJeeUTU-1HpCEZrFlwbq34659HO43zzH0RoCNX8"/>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface">Stéphane L.</p>
+<p class="font-caption text-caption text-on-surface-variant">Lab Analyst</p>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 ml-0 md:ml-64 p-gutter max-w-container-max mx-auto overflow-y-auto w-full">
+<!-- Mobile Header (Visible only on md-) -->
+<div class="md:hidden flex justify-between items-center mb-lg">
+<h1 class="font-headline-md text-headline-md text-primary">NIANKA</h1>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<!-- Page Header -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-lg gap-sm">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-xs">Bonjour Stéphane 👋</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Here is your daily food safety intelligence overview.</p>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm px-md py-sm rounded-lg flex items-center gap-xs shadow-sm transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined filled text-[20px]">qr_code_scanner</span>
+                Analyser un aliment
+            </button>
+</header>
+<!-- Metrics Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-md mb-xl">
+<!-- Metric 1 -->
+<div class="premium-card bg-surface-container-lowest rounded-xl p-md flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<div class="p-xs bg-secondary-container/20 rounded-lg text-secondary">
+<span class="material-symbols-outlined">biotech</span>
+</div>
+<span class="font-caption text-caption text-outline px-xs py-[2px] bg-surface-container rounded-full">+12% this week</span>
+</div>
+<div>
+<p class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-base">Total Analyses</p>
+<p class="font-display-lg-mobile text-display-lg-mobile text-on-surface">1,492</p>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="premium-card bg-surface-container-lowest rounded-xl p-md flex flex-col justify-between h-40 relative overflow-hidden group cursor-pointer">
+<!-- Background visual -->
+<div class="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-300" data-alt="Close up macro photography of fresh, high quality Tilapia fish scales shimmering in clean, bright, white medical-grade lighting. Subtle blue and silver tones, extremely sharp and professional." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBIDpbWWo2ymXYHvmNlzYRCJKtojbeCq5S9go0QmzJozL6cVORADGW7CJzeYgGWM4NMNS-B8wBpmA3vZnNxQnKMtqzqRJfZXSbHlBl9V3TpdSPEg-7g8xIsBANSCCgRFpZ7dHI8I8Ng1gZx5bkkZc-OkPnY7kBDf1UceyBL3bwiNZioXokUssLx8YH5w_6pY63arqtpTZxsKO7DLNb8wypFTOcMVy24nnmHj6ZuK9KaQF_8kU936ATSm72CSWkHZEfSo9SNlb8JiHs')"></div>
+<div class="relative z-10 flex justify-between items-start">
+<div class="p-xs bg-primary-container/20 rounded-lg text-primary">
+<span class="material-symbols-outlined">set_meal</span>
+</div>
+<span class="flex items-center gap-[2px] text-primary font-label-sm text-label-sm bg-primary-container/10 px-xs py-[2px] rounded-full">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                        Safe
+                    </span>
+</div>
+<div class="relative z-10">
+<p class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-base">Last Scan</p>
+<p class="font-headline-md text-headline-md text-on-surface truncate">Tilapia Fillet (Batch B42)</p>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="premium-card bg-surface-container-lowest rounded-xl p-md flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<div class="p-xs bg-error-container/20 rounded-lg text-error">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<span class="font-caption text-caption text-outline px-xs py-[2px] bg-surface-container rounded-full">System Wide</span>
+</div>
+<div>
+<p class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-base">Average Risk Rate</p>
+<div class="flex items-baseline gap-xs">
+<p class="font-display-lg-mobile text-display-lg-mobile text-on-surface">2.4%</p>
+<p class="font-caption text-caption text-outline">Low Risk</p>
+</div>
+<!-- Progress bar -->
+<div class="w-full bg-surface-container-high h-1 rounded-full mt-sm">
+<div class="bg-primary h-1 rounded-full" style="width: 2.4%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Content Area: Recent Activity & Alerts -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+<!-- Recent Activity List -->
+<section class="lg:col-span-2">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface">Recent Activity</h3>
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-container transition-colors" href="#">View All</a>
+</div>
+<div class="bg-surface-container-lowest rounded-xl premium-card overflow-hidden">
+<!-- List Item 1 -->
+<div class="flex items-center gap-md p-md border-b border-outline-variant/20 hover:bg-surface-container-low/50 transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">science</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-label-sm text-label-sm text-on-surface truncate">Pathogen Screen: Salmonella</p>
+<p class="font-caption text-caption text-on-surface-variant truncate">Sample #9042 - Poultry Division</p>
+</div>
+<div class="text-right shrink-0">
+<p class="font-caption text-caption text-on-surface-variant mb-[2px]">10 mins ago</p>
+<span class="inline-flex bg-error-container text-on-error-container font-caption text-caption px-2 py-[2px] rounded-full">Flagged</span>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="flex items-center gap-md p-md border-b border-outline-variant/20 hover:bg-surface-container-low/50 transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">set_meal</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-label-sm text-label-sm text-on-surface truncate">Heavy Metal Screen: Mercury</p>
+<p class="font-caption text-caption text-on-surface-variant truncate">Sample #9041 - Aquaculture</p>
+</div>
+<div class="text-right shrink-0">
+<p class="font-caption text-caption text-on-surface-variant mb-[2px]">1 hour ago</p>
+<span class="inline-flex bg-primary-container/10 text-primary font-caption text-caption px-2 py-[2px] rounded-full">Clear</span>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="flex items-center gap-md p-md hover:bg-surface-container-low/50 transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">eco</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-label-sm text-label-sm text-on-surface truncate">Pesticide Residue Check</p>
+<p class="font-caption text-caption text-on-surface-variant truncate">Sample #9040 - Produce (Spinach)</p>
+</div>
+<div class="text-right shrink-0">
+<p class="font-caption text-caption text-on-surface-variant mb-[2px]">3 hours ago</p>
+<span class="inline-flex bg-primary-container/10 text-primary font-caption text-caption px-2 py-[2px] rounded-full">Clear</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Secondary Column (Insights/Alerts) -->
+<aside class="lg:col-span-1 flex flex-col gap-md">
+<div class="bg-surface-container-lowest rounded-xl premium-card p-md">
+<h3 class="font-label-sm text-label-sm text-on-surface mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary">neurology</span>
+                        AI Intelligence
+                    </h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md">Our predictive model suggests a 15% increased risk of Listeria in dairy imports based on current temperature anomalies in the supply chain.</p>
+<button class="w-full py-xs px-sm border border-outline-variant rounded-lg font-label-sm text-label-sm text-on-surface hover:bg-surface-container transition-colors">View Report</button>
+</div>
+</aside>
+</div>
+</main>
+</body></html>

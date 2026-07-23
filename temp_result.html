@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NIANKA - Analyse Détaillée</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-container": "#92c1fe",
+                      "background": "#f8f9fa",
+                      "surface-bright": "#f8f9fa",
+                      "surface-variant": "#e1e3e4",
+                      "on-secondary": "#ffffff",
+                      "surface-container": "#edeeef",
+                      "on-secondary-fixed-variant": "#07497d",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary": "#9c3c3b",
+                      "tertiary-fixed": "#ffdad7",
+                      "surface-container-highest": "#e1e3e4",
+                      "inverse-primary": "#63dca6",
+                      "secondary": "#2d6197",
+                      "on-error-container": "#93000a",
+                      "error-container": "#ffdad6",
+                      "primary-fixed-dim": "#63dca6",
+                      "primary-fixed": "#81f9c1",
+                      "secondary-fixed": "#d2e4ff",
+                      "tertiary-container": "#bc5452",
+                      "surface-dim": "#d9dadb",
+                      "surface-container-high": "#e7e8e9",
+                      "on-tertiary-container": "#fffbff",
+                      "on-tertiary-fixed": "#410005",
+                      "surface-container-low": "#f3f4f5",
+                      "secondary-fixed-dim": "#a0c9ff",
+                      "on-surface-variant": "#3d4a42",
+                      "surface-tint": "#006c49",
+                      "on-surface": "#191c1d",
+                      "inverse-surface": "#2e3132",
+                      "primary-container": "#00855b",
+                      "primary": "#006947",
+                      "surface": "#f8f9fa",
+                      "outline": "#6d7a71",
+                      "on-tertiary-fixed-variant": "#802728",
+                      "on-primary-fixed-variant": "#005236",
+                      "tertiary-fixed-dim": "#ffb3af",
+                      "on-error": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "inverse-on-surface": "#f0f1f2",
+                      "on-primary": "#ffffff",
+                      "on-primary-fixed": "#002113",
+                      "on-primary-container": "#f5fff6",
+                      "error": "#ba1a1a",
+                      "outline-variant": "#bccac0",
+                      "on-secondary-container": "#144f84",
+                      "on-background": "#191c1d",
+                      "on-secondary-fixed": "#001c37"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "container-max": "1280px",
+                      "lg": "40px",
+                      "base": "4px",
+                      "xs": "8px",
+                      "xl": "64px",
+                      "sm": "16px",
+                      "md": "24px"
+              },
+              "fontFamily": {
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "caption": [
+                              "Inter"
+                      ],
+                      "display-lg-mobile": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "caption": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        .ambient-shadow {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02), 0 4px 16px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+        .btn-primary {
+            background-color: theme('colors.primary');
+            color: theme('colors.on-primary');
+            transition: filter 0.2s;
+        }
+        .btn-primary:hover {
+            filter: brightness(1.1);
+        }
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid theme('colors.outline-variant');
+            color: theme('colors.on-surface');
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: theme('colors.surface-container-low');
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col font-body-md text-body-md">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl shadow-sm">
+<div class="flex justify-between items-center h-16 px-gutter max-w-container-max mx-auto">
+<div class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg tracking-tighter text-primary dark:text-primary-fixed-dim">
+                NIANKA
+            </div>
+<div class="hidden md:flex gap-sm">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">Dashboard</a>
+<a class="font-label-sm text-label-sm text-primary font-bold border-b-2 border-primary pb-1 cursor-pointer active:scale-95 transition-transform" href="#">AI Analysis</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">History</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">Reports</a>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors duration-200 text-on-surface-variant" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors duration-200 text-on-surface-variant" data-icon="account_circle">account_circle</span>
+<button class="ml-sm font-label-sm text-label-sm btn-secondary px-sm py-xs rounded-full">Sign Out</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow pt-[104px] pb-xl px-gutter max-w-container-max mx-auto w-full flex flex-col md:flex-row gap-lg">
+<!-- SideNavBar (Desktop only for this layout variant, hidden on mobile) -->
+<aside class="hidden md:flex flex-col py-lg px-sm h-full gap-xs bg-surface-container-lowest border-r border-outline-variant/30 shadow-md w-64 fixed left-0 top-0 z-40 pt-[80px]">
+<!-- Content handled by TopNav in this specific view, keeping structural space if needed, but per instructions, suppress if focused journey. 
+                  Since this is a detailed analysis page (task-focused), we suppress the SideNav to prioritize canvas. 
+                  Leaving it structurally out of the flow. -->
+</aside>
+<!-- Canvas -->
+<div class="w-full max-w-5xl mx-auto space-y-lg">
+<!-- Header Actions -->
+<div class="flex justify-between items-center">
+<button class="flex items-center gap-xs text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+<span class="font-label-sm text-label-sm">Retour aux analyses</span>
+</button>
+<div class="flex gap-xs">
+<button class="btn-secondary flex items-center gap-base px-sm py-xs rounded-full font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="bookmark">bookmark</span>
+                        Save
+                    </button>
+<button class="btn-secondary flex items-center gap-base px-sm py-xs rounded-full font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="download">download</span>
+                        PDF
+                    </button>
+<button class="btn-primary flex items-center gap-base px-sm py-xs rounded-full font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="share">share</span>
+                        Share
+                    </button>
+</div>
+</div>
+<!-- Top Section: Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Image & Identity Card -->
+<div class="md:col-span-1 bg-surface-container-lowest rounded-xl ambient-shadow overflow-hidden flex flex-col">
+<div class="h-48 relative">
+<img class="w-full h-full object-cover" data-alt="A high-resolution, sterile laboratory photograph of a fresh Tilapia fish on a clean stainless steel surface. The lighting is bright, cool, and even, typical of a professional medical or scientific environment, emphasizing clarity and absolute trust. The aesthetic is extremely clean and minimalist." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKJ63TRAeuKlL2nSwYG55KBMxsSdNUWQNXA_MNB6ZHaSmVRIxJTNFF2rOKEOYWAisOV8sQ4TsiajIjiEzkOwsVAWLvwDYpWLdDFxMPYXBZZHwPetsS6i424qjSkGqjvf5d-kFAgt23ZkxTrqFFmZa7IoqcljvTRSTu56cJNCBejVU2FtYp_47Uj7M4uxFORDncJDMP_M57icPjBpb5OtTmFAnSCnB6QJ6TfxQ6S28SVomJBZuvndgww6Nboz_QVbgnEWq6YZACHKE"/>
+<div class="absolute top-xs right-xs bg-surface-container-lowest/90 backdrop-blur-sm px-xs py-base rounded-full border border-outline-variant/20 flex items-center gap-base">
+<span class="material-symbols-outlined text-primary text-[16px]" data-icon="check_circle">check_circle</span>
+<span class="font-label-sm text-label-sm text-primary">Verifié</span>
+</div>
+</div>
+<div class="p-sm flex flex-col gap-xs flex-grow">
+<div>
+<h1 class="font-headline-md text-headline-md text-on-surface">Tilapia du Nil</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Catégorie: Poisson</p>
+</div>
+<div class="mt-auto pt-sm border-t border-outline-variant/20 flex justify-between items-center">
+<span class="font-caption text-caption text-on-surface-variant">ID: ANA-8842-X</span>
+<span class="font-caption text-caption text-on-surface-variant">Il y a 2 min</span>
+</div>
+</div>
+</div>
+<!-- Metrics & Recommendation Card -->
+<div class="md:col-span-2 flex flex-col gap-md">
+<!-- Metrics Row -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-sm">
+<div class="bg-surface-container-lowest rounded-xl p-sm ambient-shadow flex flex-col gap-xs justify-center items-center text-center">
+<span class="font-caption text-caption text-on-surface-variant">Score de Fraîcheur</span>
+<div class="font-display-lg-mobile text-display-lg-mobile text-primary">92%</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 92%;"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-sm ambient-shadow flex flex-col gap-xs justify-center items-center text-center">
+<span class="font-caption text-caption text-on-surface-variant">Confiance IA</span>
+<div class="font-display-lg-mobile text-display-lg-mobile text-secondary">97%</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 97%;"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-sm ambient-shadow flex flex-col gap-xs justify-center items-center text-center">
+<span class="font-caption text-caption text-on-surface-variant">Niveau de Risque</span>
+<div class="flex items-center gap-xs mt-xs">
+<span class="w-4 h-4 rounded-full bg-primary"></span>
+<span class="font-headline-md text-headline-md text-on-surface">Faible</span>
+</div>
+</div>
+</div>
+<!-- Recommendation Card -->
+<div class="bg-primary-container/10 border border-primary/20 rounded-xl p-sm flex-grow flex items-start gap-sm">
+<div class="bg-primary-container text-on-primary-container p-xs rounded-full flex-shrink-0">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<h3 class="font-label-sm text-label-sm text-primary mb-base">Recommandation</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+<strong>Consommation recommandée.</strong> Le spécimen présente d'excellents indicateurs de fraîcheur. Apte à la consommation humaine immédiate ou à la congélation selon les standards de sécurité alimentaire.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Middle Section: IA Explain -->
+<div class="bg-surface-container-lowest rounded-xl p-sm ambient-shadow">
+<div class="flex items-center gap-xs mb-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="memory">memory</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">IA Explain : Marqueurs Visuels</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-sm">
+<div class="flex items-start gap-xs">
+<span class="material-symbols-outlined text-primary mt-base" data-icon="check">check</span>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface block">Clarté des yeux</span>
+<span class="font-caption text-caption text-on-surface-variant">Cornée transparente et convexe, absence de trouble opalescent (Confiance: 98%).</span>
+</div>
+</div>
+<div class="flex items-start gap-xs">
+<span class="material-symbols-outlined text-primary mt-base" data-icon="check">check</span>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface block">Coloration des branchies</span>
+<span class="font-caption text-caption text-on-surface-variant">Rouge vif caractéristique, absence de mucus abondant ou de décoloration brune (Confiance: 96%).</span>
+</div>
+</div>
+<div class="flex items-start gap-xs">
+<span class="material-symbols-outlined text-primary mt-base" data-icon="check">check</span>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface block">Texture des écailles</span>
+<span class="font-caption text-caption text-on-surface-variant">Écailles adhérentes et brillantes, reflets métalliques préservés (Confiance: 94%).</span>
+</div>
+</div>
+<div class="flex items-start gap-xs">
+<span class="material-symbols-outlined text-primary mt-base" data-icon="check">check</span>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface block">Intégrité de la peau</span>
+<span class="font-caption text-caption text-on-surface-variant">Tension superficielle adéquate, absence de lésions ou de signes de décomposition bactérienne (Confiance: 95%).</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Vision Language QA -->
+<div class="bg-surface-container-lowest rounded-xl p-sm ambient-shadow flex flex-col h-[400px]">
+<div class="flex items-center gap-xs mb-sm pb-sm border-b border-outline-variant/20">
+<span class="material-symbols-outlined text-secondary" data-icon="forum">forum</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Assistant Analytique QA</h2>
+</div>
+<!-- Chat History -->
+<div class="flex-grow overflow-y-auto flex flex-col gap-sm mb-sm pr-xs">
+<div class="flex gap-xs">
+<div class="bg-surface-container-high rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="bg-surface-container-low rounded-lg rounded-tl-none p-xs max-w-[80%]">
+<p class="font-body-md text-body-md text-on-surface">Bonjour. Je suis l'assistant d'analyse NIANKA. Avez-vous des questions spécifiques sur ce spécimen de Tilapia ?</p>
+</div>
+</div>
+</div>
+<!-- Chat Input -->
+<div class="relative mt-auto">
+<input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-full py-xs pl-sm pr-lg font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-container-lowest transition-shadow" placeholder="Posez une question sur l'analyse..." type="text"/>
+<button class="absolute right-xs top-1/2 -translate-y-1/2 text-primary hover:text-primary-container transition-colors p-base rounded-full">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-xl bg-surface-container-low dark:bg-surface-dim border-t border-outline-variant/20 mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center px-gutter max-w-container-max mx-auto gap-md">
+<div class="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">
+                NIANKA
+            </div>
+<div class="flex gap-sm">
+<a class="font-caption text-caption text-on-surface-variant hover:text-primary transition-colors opacity-100 hover:opacity-80" href="#">Privacy Policy</a>
+<a class="font-caption text-caption text-on-surface-variant hover:text-primary transition-colors opacity-100 hover:opacity-80" href="#">Terms of Service</a>
+<a class="font-caption text-caption text-on-surface-variant hover:text-primary transition-colors opacity-100 hover:opacity-80" href="#">Scientific Method</a>
+<a class="font-caption text-caption text-on-surface-variant hover:text-primary transition-colors opacity-100 hover:opacity-80" href="#">Contact</a>
+</div>
+<div class="font-caption text-caption text-on-surface-variant">
+                © 2024 NIANKA HealthTech. Precision Food Safety Intelligence.
+            </div>
+</div>
+</footer>
+</body></html>
