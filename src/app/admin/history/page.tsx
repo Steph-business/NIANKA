@@ -85,7 +85,7 @@ export default function AdminHistoryPage() {
                 <th style={{ padding: '16px 24px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>COOPÉRATIVE</th>
                 <th style={{ padding: '16px 24px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>AGENT PISTEUR</th>
                 <th style={{ padding: '16px 24px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>DATE &amp; HEURE</th>
-                <th style={{ padding: '16px 24px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>GRADE IA</th>
+                <th style={{ padding: '16px 24px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>GRADE</th>
                 <th style={{ padding: '16px 24px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em', textAlign: 'right' }}>ACTION</th>
               </tr>
             </thead>

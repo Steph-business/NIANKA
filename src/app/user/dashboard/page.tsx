@@ -181,7 +181,7 @@ export default function UserDashboardPage() {
               <tr style={{ borderBottom: '1.5px solid #F1F5F9' }}>
                 <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>ID SCAN</th>
                 <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>DATE & HEURE</th>
-                <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>GRADE IA</th>
+                <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>GRADE</th>
                 <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>SCORE KOR</th>
                 <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8', textAlign: 'right' }}>STATUT</th>
               </tr>

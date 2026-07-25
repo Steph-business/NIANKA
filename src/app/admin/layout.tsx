@@ -19,10 +19,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
 
   const navItems = [
-    { label: 'Dashboard Coopérative', href: '/cooperative/dashboard', icon: LayoutDashboard },
-    { label: 'Suivi & Anomalies IA', href: '/cooperative/analysis', icon: Microscope },
-    { label: 'Rapports & Activité', href: '/cooperative/reports', icon: FileBarChart },
-    { label: 'Historique des Lots', href: '/cooperative/history', icon: History },
+    { label: 'Dashboard', href: '/cooperative/dashboard', icon: LayoutDashboard },
+    { label: 'Suivi des lots', href: '/cooperative/analysis', icon: Microscope },
+    { label: 'Rapports', href: '/cooperative/reports', icon: FileBarChart },
+    { label: 'Historique des lots', href: '/cooperative/history', icon: History },
   ];
 
   return (
