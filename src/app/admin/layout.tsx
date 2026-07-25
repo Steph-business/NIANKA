@@ -1,0 +1,211 @@
+"use client";
+
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/Logo';
+import {
+  LayoutDashboard,
+  Microscope,
+  FileBarChart,
+  History,
+  Settings,
+  Search,
+  Bell,
+  Sparkles
+} from 'lucide-react';
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  const navItems = [
+    { label: 'Dashboard Coopérative', href: '/cooperative/dashboard', icon: LayoutDashboard },
+    { label: 'Suivi & Anomalies IA', href: '/cooperative/analysis', icon: Microscope },
+    { label: 'Rapports & Activité', href: '/cooperative/reports', icon: FileBarChart },
+    { label: 'Historique des Lots', href: '/cooperative/history', icon: History },
+  ];
+
+  return (
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      backgroundColor: '#f4f6f5',
+      color: '#0F172A',
+      fontFamily: 'var(--font-inter), sans-serif',
+    }}>
+      {/* ── SIDEBAR COOPÉRATIVE ── */}
+      <aside style={{
+        width: '240px',
+        backgroundColor: '#ffffff',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '28px 20px',
+        position: 'fixed',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        zIndex: 40,
+        boxShadow: '4px 0 24px rgba(0,0,0,0.03)',
+      }}>
+        <div>
+          {/* Brand Logo */}
+          <div style={{ padding: '0 4px', marginBottom: '32px' }}>
+            <Logo style={{ height: '34px' }} />
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginTop: '10px',
+              padding: '3px 8px',
+              borderRadius: '20px',
+              backgroundColor: '#F0FDF4',
+              color: '#1a6b0a',
+              fontSize: '10px',
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+            }}>
+              <Sparkles size={11} color="#40BB1B" />
+              <span>COOPÉRATIVE ANADER</span>
+            </div>
+          </div>
+
+          {/* Navigation Items */}
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {navItems.map(item => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || (item.href !== '/cooperative/dashboard' && pathname?.startsWith(item.href));
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    fontWeight: isActive ? 800 : 600,
+                    color: isActive ? '#ffffff' : '#64748B',
+                    backgroundColor: isActive ? '#1a6b0a' : 'transparent',
+                    boxShadow: isActive ? '0 4px 14px rgba(26, 107, 10, 0.25)' : 'none',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <Icon size={18} color={isActive ? '#ffffff' : '#64748B'} strokeWidth={isActive ? 2.5 : 2} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Bottom Profile & Settings */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px',
+            backgroundColor: '#F8FAFC',
+            borderRadius: '12px',
+          }}>
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: '#1a6b0a',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              fontWeight: 800,
+              boxShadow: '0 2px 8px rgba(26, 107, 10, 0.25)',
+            }}>
+              CA
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>Coop. ANADER</span>
+              <span style={{ fontSize: '10.5px', color: '#1a6b0a', fontWeight: 700 }}>Gestionnaire Terrain</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* ── MAIN CONTENT AREA ── */}
+      <div style={{
+        marginLeft: '240px',
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+      }}>
+        {/* Top Bar */}
+        <header style={{
+          height: '70px',
+          backgroundColor: '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 36px',
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
+          boxShadow: '0 2px 16px rgba(0,0,0,0.02)',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            backgroundColor: '#F8FAFC',
+            borderRadius: '12px',
+            padding: '9px 16px',
+            width: '360px',
+          }}>
+            <Search size={16} color="#94A3B8" />
+            <input
+              type="text"
+              placeholder="Rechercher un agent, lot ou producteur..."
+              style={{
+                border: 'none',
+                outline: 'none',
+                backgroundColor: 'transparent',
+                fontSize: '13px',
+                color: '#0F172A',
+                fontWeight: 500,
+                width: '100%',
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', position: 'relative', padding: '6px' }}>
+              <Bell size={19} color="#64748B" />
+              <span style={{
+                position: 'absolute', top: 5, right: 5, width: 8, height: 8,
+                backgroundColor: '#EF4444', borderRadius: '50%',
+              }} />
+            </button>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Link href="/usineur/dashboard" style={{ fontSize: '11px', fontWeight: 800, color: '#1a6b0a', backgroundColor: '#F0FDF4', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none' }}>
+                Vue Usineur →
+              </Link>
+              <Link href="/exportateur/dashboard" style={{ fontSize: '11px', fontWeight: 800, color: '#1a6b0a', backgroundColor: '#F0FDF4', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none' }}>
+                Vue Exportateur →
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <main style={{ padding: '32px 36px', flex: 1 }}>
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
