@@ -4,12 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Logo } from '@/components/Logo';
 import { User, Bell, Shield, Plug, CreditCard, HelpCircle, ArrowLeft, CheckCircle, Save, LogOut } from 'lucide-react';
-import { getCurrentUserProfile, clearAuthSession } from '@/lib/api';
+import { getCurrentUserProfile, clearAuthSession, UserProfile } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -18,6 +18,7 @@ export default function SettingsPage() {
   useEffect(() => {
     const user = getCurrentUserProfile();
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProfile(user);
       setFullName(user.nom_complet || 'Agent NIANKA');
       setPhone(user.telephone || '0153646448');

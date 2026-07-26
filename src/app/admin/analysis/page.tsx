@@ -1,19 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, CheckCircle2, XCircle, RefreshCw, AlertOctagon, MapPin, Compass, Clock, X, Check, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, CheckCircle2, AlertOctagon, MapPin, X, Check, ShieldCheck } from 'lucide-react';
 import { api } from '@/lib/api';
+import styles from './page.module.css';
 
 export default function AdminAIAnalysisPage() {
-  const [activeTab, setActiveTab] = useState<'anomalies' | 'queue' | 'archives'>('anomalies');
-  const [coopFilter, setCoopFilter] = useState('all');
-  const [severityFilter, setSeverityFilter] = useState('critical');
   const [scansList, setScansList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [approvedLots, setApprovedLots] = useState<Set<string>>(new Set());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'anomalies' | 'queue' | 'archives'>('anomalies');
+  const [approvedLots, setApprovedLots] = useState<Set<string>>(new Set());
 
   const showNotification = (msg: string) => {
     setToastMessage(msg);
@@ -23,44 +24,23 @@ export default function AdminAIAnalysisPage() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('nianka_approved_lots');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            setApprovedLots(new Set(parsed));
-          }
-        } catch (e) {}
-      }
-    }
-
-    async function loadScans() {
+    (async () => {
       try {
         const data = await api.etapes.getScans().catch(() => []);
-        if (Array.isArray(data) && data.length > 0) {
-          setScansList(data);
-        }
+        if (Array.isArray(data) && data.length > 0) setScansList(data);
       } catch (err) {
         console.warn('Scans loading notice:', err);
       } finally {
         setLoading(false);
       }
-    }
-    loadScans();
+    })();
   }, []);
 
   const handleApproveLot = (lotId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    setApprovedLots((prev) => {
-      const updated = new Set(prev);
-      updated.add(lotId);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('nianka_approved_lots', JSON.stringify(Array.from(updated)));
-      }
-      return updated;
-    });
-    showNotification(`Le Lot #${lotId} a été approuvé et certifié conforme.`);
+    // Add to approved lots
+    setApprovedLots(prev => new Set([...prev, lotId]));
+    showNotification(`${lotId} a été approuvé et certifié conforme.`);
   };
 
   const safeString = (val: any, fallback: string): string => {
@@ -89,7 +69,7 @@ export default function AdminAIAnalysisPage() {
       const mins = String(d.getMinutes()).padStart(2, '0');
       
       return `${day} ${month} ${year} à ${hours}:${mins}`;
-    } catch (e) {
+    } catch {
       return String(rawDate);
     }
   };
@@ -242,138 +222,94 @@ export default function AdminAIAnalysisPage() {
     : defaultItems;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1280px', position: 'relative' }}>
-      
-      {/* Toast Notification */}
+    <div className={styles.pageWrapper}>
       {toastMessage && (
-        <div style={{
-          position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999,
-          backgroundColor: '#10B981', color: '#ffffff', padding: '14px 20px',
-          borderRadius: '12px', boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
-          display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: 800,
-        }}>
+        <div className={styles.toastNotification}>
           <CheckCircle2 size={20} />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Detail Modal */}
       {selectedItem && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)',
-          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9990,
-          padding: '20px',
-        }} onClick={() => setSelectedItem(null)}>
-          <div style={{
-            backgroundColor: '#ffffff', borderRadius: '24px', padding: '28px',
-            maxWidth: '680px', width: '100%', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-            maxHeight: '90vh', overflowY: 'auto', position: 'relative',
-          }} onClick={(e) => e.stopPropagation()}>
-            
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+        <div className={styles.modalOverlay} onClick={() => setSelectedItem(null)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
               <div>
-                <span style={{
-                  fontSize: '11px', fontWeight: 800, color: selectedItem.gradeStyle.color,
-                  backgroundColor: selectedItem.gradeStyle.bg, padding: '4px 10px', borderRadius: '12px',
-                  border: `1px solid ${selectedItem.gradeStyle.border}`,
-                }}>
+                <span
+                  className={styles.modalBadge}
+                  style={{
+                    color: selectedItem.gradeStyle.color,
+                    backgroundColor: selectedItem.gradeStyle.bg,
+                    borderColor: selectedItem.gradeStyle.border,
+                    borderStyle: 'solid',
+                    borderWidth: '1px',
+                  }}
+                >
                   ● {selectedItem.grade}
                 </span>
-                <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '8px 0 2px 0' }}>
-                  Fiche Échantillon #{selectedItem.id}
-                </h2>
-                <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
+                <h2 className={styles.modalTitle}>Fiche Échantillon #{selectedItem.id}</h2>
+                <p className={styles.modalSubtitle}>
                   {selectedItem.coop} — Soumis le {selectedItem.time}
-                </div>
+                </p>
               </div>
-              <button
-                onClick={() => setSelectedItem(null)}
-                style={{
-                  border: 'none', background: '#F1F5F9', borderRadius: '50%',
-                  width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', color: '#64748B',
-                }}
-              >
+              <button className={styles.modalClose} onClick={() => setSelectedItem(null)}>
                 <X size={20} />
               </button>
             </div>
 
-            {/* Main Preview Image */}
-            <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', height: '220px', marginBottom: '20px' }}>
-              <img
-                src={selectedItem.image}
+            <div className={styles.modalImageWrap}>
+              <Image
+                src={selectedItem.image || '/images/anacarde.png'}
                 alt="Scan Échantillon"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/images/anacarde.png'; }}
+                className={styles.modalImage}
+                fill
+                sizes="(max-width: 720px) 100vw, 720px"
+                style={{ objectFit: 'cover' }}
+                onError={() => {}}
               />
-              <div style={{
-                position: 'absolute', bottom: '12px', left: '12px',
-                backgroundColor: 'rgba(15,23,42,0.85)', color: '#ffffff',
-                padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
-                display: 'flex', alignItems: 'center', gap: '6px',
-              }}>
-                <ShieldCheck size={16} color="#10B981" />
-                Analyse Visuelle IA Validée
+              <div className={styles.modalImageTag}>
+                <ShieldCheck size={16} color="#10B981" /> Analyse Visuelle IA Validée
               </div>
             </div>
 
-            {/* Analysis Metrics Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '20px' }}>
-              <div style={{ backgroundColor: '#F8FAFC', padding: '14px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>TAUX HUMIDITÉ</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: selectedItem.gradeStyle.color, marginTop: '4px' }}>
-                  {selectedItem.humidity}
-                </div>
-                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>Seuil max: 9.0%</div>
+            <div className={styles.modalMetricsGrid}>
+              <div className={styles.metricCard}>
+                <div className={styles.metricLabel}>Taux humidité</div>
+                <div className={styles.metricValue} style={{ color: selectedItem.gradeStyle.color }}>{selectedItem.humidity}</div>
+                <div className={styles.metricHint}>Seuil max: 9.0%</div>
               </div>
-
-              <div style={{ backgroundColor: '#F8FAFC', padding: '14px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>DÉFAUTS DÉTECTÉS</div>
-                <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', marginTop: '4px', wordBreak: 'break-word' }}>
-                  {selectedItem.defect}
-                </div>
-                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>Contrôle IA visuel</div>
+              <div className={styles.metricCard}>
+                <div className={styles.metricLabel}>Défauts détectés</div>
+                <div className={styles.metricValue}>{selectedItem.defect}</div>
+                <div className={styles.metricHint}>Contrôle IA visuel</div>
               </div>
-
-              <div style={{ backgroundColor: '#F8FAFC', padding: '14px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>RENDEMENT (KOR)</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: '#1a6b0a', marginTop: '4px' }}>
-                  54.2 lbs
-                </div>
-                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>Qualité exportateur</div>
+              <div className={styles.metricCard}>
+                <div className={styles.metricLabel}>Rendement (Kor)</div>
+                <div className={styles.metricValue} style={{ color: '#1a6b0a' }}>54.2 lbs</div>
+                <div className={styles.metricHint}>Qualité exportateur</div>
               </div>
             </div>
 
-            {/* Additional info section */}
-            <div style={{ backgroundColor: '#F8FAFC', padding: '14px 18px', borderRadius: '14px', border: '1px solid #E2E8F0', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569' }}>Agent Terrain Responsable:</span>
-                <span style={{ fontSize: '13px', fontWeight: 900, color: '#0F172A' }}>{selectedItem.agent}</span>
+            <div className={styles.modalDetails}>
+              <div className={styles.detailRow}>
+                <span className={styles.detailLabel}>Agent Terrain Responsable:</span>
+                <span className={styles.detailValue}>{selectedItem.agent}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569' }}>Géolocalisation GPS:</span>
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#10B981', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div className={styles.detailRow}>
+                <span className={styles.detailLabel}>Géolocalisation GPS:</span>
+                <span className={styles.detailHighlight}>
                   <MapPin size={14} /> Validé (District Bouaké)
                 </span>
               </div>
             </div>
 
-            {/* Footer Buttons */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '12px', borderTop: '1px solid #E2E8F0' }}>
-              <button
-                onClick={() => setSelectedItem(null)}
-                style={{
-                  padding: '10px 18px', backgroundColor: '#F1F5F9', color: '#475569',
-                  border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 800, cursor: 'pointer',
-                }}
-              >
+            <div className={styles.modalFooter}>
+              <button className={`${styles.buttonBase} ${styles.buttonSecondary}`} onClick={() => setSelectedItem(null)}>
                 Fermer
               </button>
-              
               {!selectedItem.isApproved && (
                 <button
+                  className={`${styles.buttonBase} ${styles.buttonPrimary}`}
                   onClick={() => {
                     handleApproveLot(selectedItem.id);
                     setSelectedItem((prev: any) => prev ? {
@@ -381,201 +317,115 @@ export default function AdminAIAnalysisPage() {
                       isApproved: true,
                       grade: 'IA : APPROUVÉ',
                       gradeStyle: getGradeStyle('IA : APPROUVÉ', true),
-                      statusTag: 'APPROUVÉ'
+                      statusTag: 'APPROUVÉ',
                     } : null);
-                  }}
-                  style={{
-                    padding: '10px 20px', backgroundColor: '#1a6b0a', color: '#ffffff',
-                    border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 800, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: '6px',
                   }}
                 >
                   <Check size={16} /> Approuver ce Lot
                 </button>
               )}
             </div>
-
           </div>
         </div>
       )}
 
-      {/* Top Tabs Bar */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        borderBottom: '1.5px solid #E2E8F0', paddingBottom: '12px',
-      }}>
-        <div style={{ display: 'flex', gap: '24px' }}>
+      <section className={styles.topBar}>
+        <div className={styles.tabButtonGroup}>
           {[
             { key: 'anomalies', label: 'Gestion des Anomalies' },
-            { key: 'queue',     label: "Files d'Attente" },
-            { key: 'archives',  label: 'Archives' },
-          ].map(t => (
+            { key: 'queue', label: 'Files d&apos;Attente' },
+            { key: 'archives', label: 'Archives' },
+          ].map((tab) => (
             <button
-              key={t.key}
-              onClick={() => setActiveTab(t.key as typeof activeTab)}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '14px',
-                fontWeight: 800,
-                color: activeTab === t.key ? '#1a6b0a' : '#94A3B8',
-                borderBottom: activeTab === t.key ? '2.5px solid #1a6b0a' : '2.5px solid transparent',
-                paddingBottom: '12px',
-                marginBottom: '-13.5px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as typeof activeTab)}
+              className={`${styles.tabButton} ${activeTab === tab.key ? styles.tabButtonActive : ''}`}
             >
-              {t.label}
+              {tab.label}
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Filters Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <select
-            value={coopFilter}
-            onChange={e => setCoopFilter(e.target.value)}
-            style={{
-              padding: '9px 14px', borderRadius: '10px', border: '1.5px solid #CBD5E1',
-              backgroundColor: '#ffffff', fontSize: '13px', fontWeight: 600, color: '#475569', outline: 'none',
-            }}
-          >
-            <option value="all">Toutes les Coopératives</option>
-            <option value="anader">Coop. ANADER Bouaké</option>
-            <option value="socakkat">SOCAKKAT Dalleu</option>
-          </select>
-
-          <select
-            value={severityFilter}
-            onChange={e => setSeverityFilter(e.target.value)}
-            style={{
-              padding: '9px 14px', borderRadius: '10px', border: '1.5px solid #CBD5E1',
-              backgroundColor: '#ffffff', fontSize: '13px', fontWeight: 600, color: '#475569', outline: 'none',
-            }}
-          >
-            <option value="critical">Sévérité: Critique</option>
-            <option value="major">Sévérité: Majeure</option>
-            <option value="all">Toutes les sévérités</option>
-          </select>
-        </div>
-
-        <div style={{
-          backgroundColor: '#F0FDF4', color: '#1a6b0a', padding: '6px 14px',
-          borderRadius: '20px', fontSize: '12px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px',
-        }}>
+        <div className={styles.summaryBadge}>
           <AlertOctagon size={16} color="#1a6b0a" />
-          <span>{itemsToDisplay.length} Scans / Anomalies en Base</span>
+          {itemsToDisplay.length} lots en attente d&apos;approbation
         </div>
-      </div>
+      </section>
 
-      {/* DYNAMIC REVIEW CARDS GENERATED FROM BACKEND / DATABASE */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className={styles.listContainer}>
         {loading ? (
-          <div style={{ padding: '30px', textAlign: 'center', color: '#64748B', fontWeight: 700 }}>
-            Chargement des scans depuis le serveur FastAPI &amp; Supabase...
+          <div className={styles.loadingState}>
+            Chargement des scans depuis le serveur FastAPI & Supabase...
           </div>
         ) : (
           itemsToDisplay.map((item, idx) => (
-            <div key={idx}
+            <article
+              key={idx}
+              className={`${styles.itemCard} ${item.isApproved ? styles.itemCardApproved : ''}`}
               onClick={() => setSelectedItem(item)}
-              style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '16px',
-                padding: '20px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-                display: 'grid',
-                gridTemplateColumns: '220px 1fr 200px',
-                gap: '24px',
-                alignItems: 'center',
-                cursor: 'pointer',
-                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-              }}
             >
-              {/* Left Thumbnail Image with Tag */}
-              <div style={{ position: 'relative', height: '140px', borderRadius: '10px', overflow: 'hidden' }}>
-                <img src={item.image} alt="Scan Lot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{
-                  position: 'absolute', top: '8px', left: '8px',
-                  backgroundColor: item.gradeStyle.color, color: '#ffffff', fontSize: '10px', fontWeight: 900,
-                  padding: '3px 8px', borderRadius: '4px', letterSpacing: '0.05em',
-                }}>
+              <div className={styles.itemThumbnail}>
+                <Image
+                  src={item.image || '/images/anacarde.png'}
+                  alt="Scan Lot"
+                  className={styles.itemImage}
+                  fill
+                  sizes="220px"
+                  style={{ objectFit: 'cover' }}
+                />
+                <div className={styles.itemGradeBanner} style={{ backgroundColor: item.gradeStyle.color }}>
                   {item.grade}
                 </div>
-                <div style={{
-                  position: 'absolute', bottom: '6px', left: '6px',
-                  backgroundColor: 'rgba(15,23,42,0.8)', color: '#ffffff', fontSize: '9.5px', fontWeight: 600,
-                  padding: '2px 6px', borderRadius: '4px',
-                }}>
-                  Origine Agent: {item.agent}
-                </div>
+                <div className={styles.itemThumbnailFooter}>Origine Agent: {item.agent}</div>
               </div>
 
-              {/* Middle Lot Metadata */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', margin: 0 }}>Lot #{item.id}</h3>
-                    <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>{item.time}</span>
-                  </div>
-                  <p style={{ fontSize: '12.5px', color: '#64748B', margin: '3px 0 0 0', fontWeight: 500 }}>
-                    {item.coop} — <strong style={{ color: item.gradeStyle.color }}>Défaut: {item.defect}</strong>
-                  </p>
+              <div className={styles.itemDetails}>
+                <div className={styles.itemHeader}>
+                  <h3 className={styles.itemTitle}>Lot #{item.id}</h3>
+                  <span className={styles.itemSubtitle}>{item.time}</span>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', backgroundColor: '#F8FAFC', padding: '10px 14px', borderRadius: '10px' }}>
-                  <div>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8' }}>HUMIDITÉ</div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 800, color: item.gradeStyle.color }}>{item.humidity}</div>
+                <p className={styles.itemSubtitle}>
+                  {item.coop} — <strong style={{ color: item.gradeStyle.color }}>Défaut: {item.defect}</strong>
+                </p>
+                <div className={styles.itemMeta}>
+                  <div className={styles.metaBlock}>
+                    <span className={styles.metaLabel}>Humidité</span>
+                    <span className={styles.metaValue} style={{ color: item.gradeStyle.color }}>{item.humidity}</span>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8' }}>QUALITÉ</div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 800, color: item.gradeStyle.color }}>{item.statusTag}</div>
+                  <div className={styles.metaBlock}>
+                    <span className={styles.metaLabel}>Qualité</span>
+                    <span className={styles.metaValue} style={{ color: item.gradeStyle.color }}>{item.statusTag}</span>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8' }}>AGENT TERRAIN</div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A' }}>{item.agent}</div>
+                  <div className={styles.metaBlock}>
+                    <span className={styles.metaLabel}>Agent</span>
+                    <span className={styles.metaValue}>{item.agent}</span>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: '#94A3B8' }}>GÉO-CLÔTURE</div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#1a6b0a' }}>Validé</div>
+                  <div className={styles.metaBlock}>
+                    <span className={styles.metaLabel}>Géo-clôture</span>
+                    <span className={styles.metaValue} style={{ color: '#1a6b0a' }}>Validé</span>
                   </div>
                 </div>
               </div>
 
-              {/* Right Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className={styles.actionPanel}>
                 <button
+                  className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
                   onClick={(e) => { e.stopPropagation(); setSelectedItem(item); }}
-                  style={{
-                    padding: '10px', backgroundColor: '#1a6b0a', color: '#ffffff',
-                    border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 800, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  }}
                 >
                   <Eye size={15} /> Examiner
                 </button>
                 <button
-                  onClick={(e) => handleApproveLot(item.id, e)}
+                  className={`${styles.actionButton} ${styles.actionButtonSecondary} ${item.isApproved ? styles.actionButtonDisabled : ''}`}
+                  onClick={(e) => { e.stopPropagation(); handleApproveLot(item.id, e); }}
                   disabled={item.isApproved}
-                  style={{
-                    padding: '9px',
-                    backgroundColor: item.isApproved ? '#ECFDF5' : '#ffffff',
-                    color: item.isApproved ? '#10B981' : '#1a6b0a',
-                    border: item.isApproved ? '1.5px solid #A7F3D0' : '1.5px solid #BBF7D0',
-                    borderRadius: '8px', fontSize: '12.5px', fontWeight: 800, cursor: item.isApproved ? 'default' : 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                  }}
                 >
                   {item.isApproved ? <><Check size={14} /> Lot Approuvé</> : 'Approuver Lot'}
                 </button>
               </div>
-            </div>
+            </article>
           ))
         )}
       </div>
     </div>
   );
 }
+

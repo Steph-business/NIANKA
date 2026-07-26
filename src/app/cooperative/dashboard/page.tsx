@@ -200,7 +200,7 @@ export default function CooperativeDashboard() {
   const getGradeBadge = (rawGrade: string, isValidated: boolean) => {
     if (isValidated) {
       return {
-        label: 'Grade A (Approuvé)',
+        label: 'Grade A',
         color: '#10B981',
         bg: '#ECFDF5',
         border: '#A7F3D0',
@@ -367,7 +367,7 @@ export default function CooperativeDashboard() {
             </span>
           </div>
           <div style={{ marginTop: '20px' }}>
-            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Score KOR Moyen</div>
+            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Rendement en amandes (KOR) Moyen</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>{avgKorScore}</span>
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#64748B' }}>lbs / Sac</span>
@@ -416,8 +416,8 @@ export default function CooperativeDashboard() {
                 <th style={{ padding: '12px 14px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>IDENTIFICATION DU LOT</th>
                 <th style={{ padding: '12px 14px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', textAlign: 'center' }}>PESÉE / POIDS</th>
                 <th style={{ padding: '12px 14px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', textAlign: 'center' }}>HUMIDITÉ (%)</th>
-                <th style={{ padding: '12px 14px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>GRADE IA</th>
-                <th style={{ padding: '12px 14px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', textAlign: 'center' }}>SCORE KOR</th>
+                <th style={{ padding: '12px 14px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>GRADE</th>
+                <th style={{ padding: '12px 14px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', textAlign: 'center' }}>RENDEMENT EN AMANDES (KOR)</th>
                 <th style={{ padding: '12px 14px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>DATE &amp; HEURE</th>
                 <th style={{ padding: '12px 14px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', textAlign: 'right' }}>HOMOLOGATION</th>
               </tr>

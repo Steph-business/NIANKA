@@ -217,6 +217,9 @@ export default function CooperativeLayout({ children }: { children: React.ReactN
               <Link href="/exportateur/dashboard" style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', backgroundColor: '#ECFDF5', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none' }}>
                 Vue Exportateur →
               </Link>
+              <Link href="/entrepot/dashboard" style={{ fontSize: '11px', fontWeight: 800, color: '#6366f1', backgroundColor: '#e0e7ff', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none' }}>
+                Vue Entrepôt →
+              </Link>
             </div>
           </div>
         </header>

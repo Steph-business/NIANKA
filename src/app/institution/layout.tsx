@@ -140,6 +140,9 @@ export default function InstitutionLayout({ children }: { children: React.ReactN
             <Link href="/exportateur/dashboard" style={{ fontSize: '11px', fontWeight: 800, color: '#1a6b0a', backgroundColor: '#F0FDF4', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none' }}>
               Exportateur →
             </Link>
+            <Link href="/entrepot/dashboard" style={{ fontSize: '11px', fontWeight: 800, color: '#1a6b0a', backgroundColor: '#F0FDF4', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none' }}>
+              Entrepôt →
+            </Link>
           </div>
         </header>
 

@@ -102,7 +102,7 @@ export function setAuthSession(authData: AuthResponse) {
   if (typeof window !== 'undefined' && authData) {
     const tokenStr = typeof authData.access_token === 'string' 
       ? authData.access_token 
-      : ((authData as any).token || (authData as any).access_token);
+      : ((authData as Record<string, string>).token || (authData as Record<string, string>).access_token);
     if (tokenStr) {
       localStorage.setItem('nianka_access_token', tokenStr);
       localStorage.setItem('token', tokenStr);
@@ -120,7 +120,7 @@ export function getCurrentUserProfile(): UserProfile | null {
     if (raw) {
       try {
         return JSON.parse(raw);
-      } catch (e) {
+      } catch (e: unknown) {
         return null;
       }
     }
@@ -180,7 +180,7 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
       if (typeof errorJson.detail === 'string') {
         errorMessage = errorJson.detail;
       } else if (Array.isArray(errorJson.detail)) {
-        errorMessage = errorJson.detail.map((err: any) => err.msg || err.message || JSON.stringify(err)).join(' | ');
+        errorMessage = errorJson.detail.map((err: Record<string, unknown>) => err.msg || err.message || JSON.stringify(err)).join(' | ');
       } else if (typeof errorJson.detail === 'object') {
         errorMessage = JSON.stringify(errorJson.detail);
       }
@@ -266,8 +266,12 @@ export const api = {
       return apiFetch<LotData[]>('/etapes/lots');
     },
 
-    getScans: async (): Promise<any[]> => {
-      return apiFetch<any[]>('/etapes/scans');
+    getLot: async (id: string): Promise<LotData> => {
+      return apiFetch<LotData>(`/etapes/lots/${id}`);
+    },
+
+    getScans: async (): Promise<unknown[]> => {
+      return apiFetch<unknown[]>('/etapes/scans');
     },
 
     predictQuality: async (formData: FormData): Promise<PredictionResult> => {
@@ -308,7 +312,7 @@ export const api = {
   // Notifications
   notifications: {
     list: async (unreadOnly?: boolean) => {
-      return apiFetch<any[]>(`/notifications/${unreadOnly ? '?unread_only=true' : ''}`);
+      return apiFetch<unknown[]>(`/notifications/${unreadOnly ? '?unread_only=true' : ''}`);
     },
     markRead: async (id: string) => {
       return apiFetch<{ message: string }>(`/notifications/${id}/read`, { method: 'PATCH' });

@@ -91,7 +91,7 @@ export default function UsineurDashboard() {
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>CODE LOT</th>
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>COOPÉRATIVE ORIGINE</th>
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>VOLUME</th>
-              <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>SCORE KOR</th>
+              <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>RENDEMENT EN AMANDES (KOR)</th>
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>HUMIDITÉ</th>
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', textAlign: 'right' }}>ACTION</th>
             </tr>
@@ -116,7 +116,7 @@ export default function UsineurDashboard() {
                 </td>
                 <td style={{ padding: '18px 16px', fontSize: '12.5px', color: '#475569', fontWeight: 500 }}>{lot.moisture}</td>
                 <td style={{ padding: '18px 16px', textAlign: 'right' }}>
-                  <Link href="/user/analysis/result" style={{
+                  <Link href={`/usineur/lot/${lot.id}`} style={{
                     padding: '8px 14px', backgroundColor: '#1a6b0a', color: '#ffffff',
                     borderRadius: '8px', fontSize: '12px', fontWeight: 800, textDecoration: 'none',
                     display: 'inline-flex', alignItems: 'center', gap: '6px',

@@ -198,6 +198,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link href="/exportateur/dashboard" style={{ fontSize: '11px', fontWeight: 800, color: '#1a6b0a', backgroundColor: '#F0FDF4', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none' }}>
                 Vue Exportateur →
               </Link>
+              <Link href="/entrepot/dashboard" style={{ fontSize: '11px', fontWeight: 800, color: '#1a6b0a', backgroundColor: '#F0FDF4', padding: '6px 12px', borderRadius: '20px', textDecoration: 'none' }}>
+                Vue Entrepôt →
+              </Link>
             </div>
           </div>
         </header>

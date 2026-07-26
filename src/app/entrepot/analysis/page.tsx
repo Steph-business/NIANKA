@@ -71,7 +71,7 @@ export default function EntrepotAnalysisPage() {
   const handleSealSale = async () => {
     try {
       await api.etapes.executeArbitrage({
-        bordereau_id: lotData.id,
+        bordereau_id: lotData?.id,
         score_kor_entrepot: parseFloat(scanResult.kor) || 54.2,
         taux_humidite_entrepot: parseFloat(scanResult.moisture) || 6.8,
         verdict_conforme: true,
@@ -184,23 +184,23 @@ export default function EntrepotAnalysisPage() {
             <div style={{ backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748B' }}>Réf Bordereau:</span>
-                <strong style={{ color: '#1a6b0a' }}>#{lotData.id}</strong>
+                <strong style={{ color: '#1a6b0a' }}>#{lotData?.id || '---'}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748B' }}>Coopérative Origine:</span>
-                <strong style={{ color: '#0F172A' }}>{lotData.origin}</strong>
+                <strong style={{ color: '#0F172A' }}>{lotData?.origin || '---'}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748B' }}>Chauffeur &amp; Camion:</span>
-                <strong style={{ color: '#0F172A' }}>{lotData.truck}</strong>
+                <strong style={{ color: '#0F172A' }}>{lotData?.truck || '---'}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748B' }}>Agent Pisteur (Champ):</span>
-                <strong style={{ color: '#1a6b0a' }}>{lotData.agentScan}</strong>
+                <strong style={{ color: '#1a6b0a' }}>{lotData?.agentScan || '---'}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748B' }}>Volume à Décharger:</span>
-                <strong style={{ color: '#0F172A' }}>{lotData.volume}</strong>
+                <strong style={{ color: '#0F172A' }}>{lotData?.volume || '---'}</strong>
               </div>
             </div>
 
@@ -288,9 +288,9 @@ export default function EntrepotAnalysisPage() {
                     1. SCAN INITIAL COOPÉRATIVE
                   </div>
                   <div style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>
-                    {lotData.initialKor}
+                    {lotData?.initialKor}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#475569' }}>Humidité: {lotData.initialMoisture}</div>
+                  <div style={{ fontSize: '11px', color: '#475569' }}>Humidité: {lotData?.initialMoisture}</div>
                 </div>
 
                 <div style={{ backgroundColor: '#F0FDF4', borderRadius: '10px', padding: '12px', border: '1.5px solid #BBF7D0' }}>

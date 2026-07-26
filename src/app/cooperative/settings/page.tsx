@@ -98,7 +98,7 @@ export default function CooperativeSettingsPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Score KOR Minimum Grade A</label>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Rendement (KOR) Minimum Grade A</label>
               <select
                 value={form.minKorGradeA}
                 onChange={e => setForm({ ...form, minKorGradeA: e.target.value })}

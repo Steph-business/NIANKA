@@ -5,26 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Logo } from '@/components/Logo';
 import { 
-  BarChart3, 
-  Plus, 
-  Search, 
-  Clock, 
-  Settings, 
-  HelpCircle, 
-  FileText,
   UploadCloud,
-  Camera,
-  FolderOpen,
-  Zap,
-  CheckCircle2,
-  Brain,
-  ShieldCheck,
-  MapPin,
-  Maximize2,
-  LayoutGrid,
-  Download,
-  RefreshCw,
-  Map as MapIcon
+  LayoutGrid
 } from 'lucide-react';
 
 export default function TerminalPage() {
@@ -153,7 +135,7 @@ export default function TerminalPage() {
 function TerminalScreen1() {
   return (
     <div style={{ backgroundColor: '#ffffff', color: '#0f172a', borderRadius: '16px', padding: '24px' }}>
-      <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>Nouveau Lot d'Analyse (Agent Field)</h2>
+      <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>Nouveau Lot d&apos;Analyse (Agent Field)</h2>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <div style={{ border: '1px solid #e2e8f0', padding: '16px', borderRadius: '12px' }}>
           <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', marginBottom: '10px' }}>DÉTAILS DU LOT</div>
@@ -164,9 +146,9 @@ function TerminalScreen1() {
         </div>
         <div style={{ border: '2px dashed #cbd5e1', padding: '24px', textAlign: 'center', borderRadius: '12px' }}>
           <UploadCloud size={32} style={{ margin: '0 auto 8px auto', color: '#006947' }} />
-          <p style={{ fontWeight: 800 }}>Importer l'image du produit</p>
+          <p style={{ fontWeight: 800 }}>Importer l&apos;image du produit</p>
           <button style={{ marginTop: '16px', padding: '12px 24px', backgroundColor: '#006947', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: 'pointer' }}>
-            ⚡ Lancer l'Analyse
+            ⚡ Lancer l&apos;Analyse
           </button>
         </div>
       </div>
@@ -198,7 +180,7 @@ function TerminalScreen2() {
 function TerminalScreen3() {
   return (
     <div style={{ backgroundColor: '#ffffff', color: '#0f172a', borderRadius: '16px', padding: '24px' }}>
-      <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>Résumé de l'activité (Agent de Terrain)</h2>
+      <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>Résumé de l&apos;activité (Agent de Terrain)</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
         <div style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px' }}>Lots: <strong>28</strong></div>
         <div style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px' }}>Qualité: <strong>94% Grade A</strong></div>

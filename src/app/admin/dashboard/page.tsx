@@ -1,12 +1,18 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, CheckCircle2, AlertTriangle, Info, MapPin, X, TrendingUp } from 'lucide-react';
+import { api, TraceabilityStats } from '@/lib/api';
 
 export default function AdminDashboard() {
   const [chartPeriod, setChartPeriod] = useState<'7d' | '30d'>('7d');
   const [mapTab, setMapTab] = useState<'map' | 'list'>('map');
   const [showToast, setShowToast] = useState(true);
+  const [stats, setStats] = useState<TraceabilityStats | null>(null);
+
+  useEffect(() => {
+    api.etapes.getStats().then(setStats).catch(console.error);
+  }, []);
 
   const agents = [
     { name: 'Amadou Koné', lots: 45, status: 'EN LIGNE', sync: 'il y a 2m', online: true },
@@ -59,7 +65,7 @@ export default function AdminDashboard() {
           </div>
           <div style={{ marginTop: '20px' }}>
             <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Total Lots Traités</div>
-            <div style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>1,284</div>
+            <div style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>{stats ? stats.total_lots_count : '...'}</div>
           </div>
         </div>
 
@@ -82,9 +88,9 @@ export default function AdminDashboard() {
             </span>
           </div>
           <div style={{ marginTop: '20px' }}>
-            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Score KOR Moyen</div>
+            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Rendement en amandes (KOR) Moyen</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-              <span style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>52.4</span>
+              <span style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>{stats ? stats.kor_moyen : '...'}</span>
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#64748B' }}>lbs</span>
             </div>
           </div>

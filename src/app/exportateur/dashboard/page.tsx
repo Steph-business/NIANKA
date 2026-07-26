@@ -1,15 +1,24 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Globe, Download } from 'lucide-react';
+import { api, LotData, TraceabilityStats } from '@/lib/api';
 
 export default function ExportateurDashboard() {
-  const exportShipments = [
-    { id: 'EXP-2024-0089', destination: 'Port de Rotterdam (UE)', volume: '120 Tonnes', kor: '53.5 lbs', cert: 'Conforme Export EU', status: 'VALIDE (Prêt Embarquement)' },
-    { id: 'EXP-2024-0090', destination: 'Port de Hamburg (UE)', volume: '80 Tonnes', kor: '52.0 lbs', cert: 'Conforme Export EU', status: 'VALIDE (En Douane)' },
-    { id: 'EXP-2024-0091', destination: 'Port de New York (US)', volume: '150 Tonnes', kor: '54.0 lbs', cert: 'Conforme USDA / FDA', status: 'VALIDE (Embarqué)' },
-  ];
+  const [lots, setLots] = useState<LotData[]>([]);
+  const [stats, setStats] = useState<TraceabilityStats | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      api.etapes.getLots(),
+      api.etapes.getStats()
+    ]).then(([lotsData, statsData]) => {
+      // Pour l'exportateur, on peut afficher les lots de grade A (premium) comme expéditions potentielles/validées
+      setLots(lotsData.filter(l => l.grade?.includes('A')));
+      setStats(statsData);
+    }).catch(console.error);
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1280px' }}>
@@ -31,12 +40,16 @@ export default function ExportateurDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
         <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
           <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B' }}>VOLUME CERTIFIÉ EXPORT</div>
-          <div style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', marginTop: '12px', lineHeight: 1 }}>350 Tonnes</div>
+          <div style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', marginTop: '12px', lineHeight: 1 }}>
+            {stats ? (stats.grades?.['Grade A'] || '0 Tonnes') : '...'}
+          </div>
         </div>
 
         <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
           <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B' }}>TAUX CONFORMITÉ EU / US</div>
-          <div style={{ fontSize: '34px', fontWeight: 900, color: '#1a6b0a', marginTop: '12px', lineHeight: 1 }}>99.4%</div>
+          <div style={{ fontSize: '34px', fontWeight: 900, color: '#1a6b0a', marginTop: '12px', lineHeight: 1 }}>
+            {stats ? `${stats.qualite_premium_pourcent}%` : '...'}
+          </div>
         </div>
 
         <div style={{ backgroundColor: '#1a6b0a', color: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 6px 24px rgba(26, 107, 10, 0.25)' }}>
@@ -69,25 +82,25 @@ export default function ExportateurDashboard() {
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>RÉF EXPÉDITION</th>
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>DESTINATION PORT</th>
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>VOLUME</th>
-              <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>SCORE KOR</th>
+              <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>RENDEMENT EN AMANDES (KOR)</th>
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B' }}>STATUT DOUANE</th>
               <th style={{ padding: '14px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', textAlign: 'right' }}>ACTION</th>
             </tr>
           </thead>
           <tbody>
-            {exportShipments.map((exp, idx) => (
-              <tr key={idx} style={{ borderBottom: idx < exportShipments.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
-                <td style={{ padding: '18px 16px', fontSize: '13.5px', fontWeight: 800, color: '#1a6b0a' }}>#{exp.id}</td>
-                <td style={{ padding: '18px 16px', fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>{exp.destination}</td>
-                <td style={{ padding: '18px 16px', fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>{exp.volume}</td>
-                <td style={{ padding: '18px 16px', fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>{exp.kor}</td>
+            {lots.map((lot, idx) => (
+              <tr key={idx} style={{ borderBottom: idx < lots.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
+                <td style={{ padding: '18px 16px', fontSize: '13.5px', fontWeight: 800, color: '#1a6b0a' }}>#{lot.numero_lot || lot.id.substring(0,8)}</td>
+                <td style={{ padding: '18px 16px', fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Port d&apos;Export</td>
+                <td style={{ padding: '18px 16px', fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>{lot.poids_tonnes} T</td>
+                <td style={{ padding: '18px 16px', fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>{lot.score_kor || '-'}</td>
                 <td style={{ padding: '18px 16px' }}>
                   <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#1a6b0a', backgroundColor: '#F0FDF4', padding: '4px 10px', borderRadius: '8px' }}>
-                    {exp.status}
+                    {lot.statut || 'VALIDE'}
                   </span>
                 </td>
                 <td style={{ padding: '18px 16px', textAlign: 'right' }}>
-                  <Link href="/user/analysis/result" style={{
+                  <Link href={`/exportateur/lot/${lot.id}`} style={{
                     padding: '8px 14px', backgroundColor: '#1a6b0a', color: '#ffffff',
                     borderRadius: '8px', fontSize: '12px', fontWeight: 800, textDecoration: 'none',
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
@@ -98,6 +111,13 @@ export default function ExportateurDashboard() {
                 </td>
               </tr>
             ))}
+            {lots.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748B', fontSize: '14px', fontWeight: 600 }}>
+                  Aucune expédition d&apos;export certifiée trouvée.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

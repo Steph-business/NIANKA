@@ -12,6 +12,15 @@ export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('mode') === 'register') {
+        setMode('register');
+      }
+    }
+  }, []);
+
   // Login state
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
