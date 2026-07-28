@@ -76,12 +76,15 @@ app.include_router(rapports_router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health Check"])
 def health_check():
+    from backend.modules.etapes.ai_service import ai_classifier
+
     return {
         "status": "healthy",
         "project": settings.PROJECT_NAME,
         "version": settings.VERSION,
         "port": settings.PORT,
-        "environment": "production"
+        "environment": "production",
+        "ia": ai_classifier.status(),
     }
 
 

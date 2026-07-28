@@ -9,6 +9,13 @@ class RapportCreate(BaseModel):
     periode_debut: datetime
     periode_fin: datetime
 
+class RapportGenerateRequest(BaseModel):
+    """Demande simplifiée émise par les tableaux de bord : la période est
+    exprimée en langage courant (« 7d », « 30d », « 90d », « 12m »)."""
+    type_rapport: Optional[str] = Field("statistique_kor")
+    periode: Optional[str] = Field("30d", description="7d, 30d, 90d, 12m")
+    titre: Optional[str] = None
+
 class RapportResponse(BaseModel):
     id: UUID
     utilisateur_id: UUID

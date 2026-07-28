@@ -8,7 +8,16 @@ class Rapport(Base):
     __tablename__ = "rapports"
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    utilisateur_id = Column(GUID, ForeignKey("utilisateurs.id", ondelete="CASCADE"), nullable=False, index=True)
+    # La table Supabase existante nomme cette colonne « superviseur_id ».
+    # On conserve l'attribut métier `utilisateur_id` côté Python et on le mappe
+    # explicitement sur la colonne réelle : aucune migration n'est nécessaire.
+    utilisateur_id = Column(
+        "superviseur_id",
+        GUID,
+        ForeignKey("utilisateurs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     titre = Column(String(200), nullable=False)
     type_rapport = Column(String(50), default="statistique_kor") # statistique_kor, certificat_phytosanitaire, rapport_export
     periode_debut = Column(DateTime, nullable=False)

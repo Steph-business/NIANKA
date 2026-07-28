@@ -1,0 +1,316 @@
+.pageWrapper {
+  min-height: 100vh;
+  display: flex;
+  background-color: #ffffff;
+  font-family: var(--font-inter), sans-serif;
+}
+
+.leftPanel {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.bgImage {
+  position: absolute;
+  inset: 0;
+  background-image: url(/images/inspection.png);
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.65);
+  z-index: 1;
+}
+
+.gradientOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15,45,10,0.85) 0%, rgba(26,107,10,0.65) 50%, rgba(10,35,8,0.9) 100%);
+  z-index: 2;
+}
+
+.leftContent {
+  position: relative;
+  z-index: 3;
+}
+
+.logoSubtitle {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 3;
+  max-width: 520px;
+  margin-bottom: 24px;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background-color: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.heroTitle {
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.heroText {
+  font-size: 15px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.featureList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+}
+
+.footerText {
+  position: relative;
+  z-index: 3;
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  font-weight: 500;
+}
+
+.rightPanel {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px 48px;
+  background-color: #ffffff;
+  overflow-y: auto;
+}
+
+.formHeader {
+  font-size: 26px;
+  font-weight: 900;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+}
+
+.formSubtitle {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+.formWrapper {
+  margin: 24px 0;
+}
+
+.errorMessage {
+  padding: 12px 16px;
+  background-color: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FCA5A5;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inputGroup {
+  margin-bottom: 18px;
+}
+
+.inputLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 5px;
+}
+
+.inputBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background-color: #F8FAFC;
+  transition: border-color 0.2s;
+}
+
+.input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  color: #0F172A;
+  font-weight: 500;
+  background-color: transparent;
+  width: 100%;
+}
+
+.passwordToggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+}
+
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -4px;
+  margin-bottom: 18px;
+}
+
+.rememberMe {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+}
+
+.forgotPasswordLink {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a6b0a;
+  text-decoration: none;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 14px;
+  background-color: #1a6b0a;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.submitButton:disabled {
+  background-color: #94A3B8;
+  cursor: not-allowed;
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #94A3B8;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.separator:not(:empty)::before {
+  margin-right: .5em;
+}
+
+.separator:not(:empty)::after {
+  margin-left: .5em;
+}
+
+.googleButton {
+  width: 100%;
+  padding: 12px;
+  background-color: #ffffff;
+  color: #334155;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.switchModeText {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.switchModeButton {
+  background: none;
+  border: none;
+  color: #1a6b0a;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.trustBadges {
+  border-top: 1px solid #F1F5F9;
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.badgeItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+}

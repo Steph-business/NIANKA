@@ -17,6 +17,19 @@ class RegisterRequest(BaseModel):
     profil_id: Optional[UUID] = None
     role: Optional[str] = Field("agent", description="Rôle NIANKA: agent (pisteur), cooperative, entrepot (dépôt), usine (usinier), exportateur, admin")
     telephone: Optional[str] = None
+    cooperative_id: Optional[UUID] = Field(
+        None,
+        description="Coopérative de rattachement (obligatoire côté métier pour un agent pisteur)"
+    )
+
+
+class RattachementRequest(BaseModel):
+    """Rattache un agent de terrain à une coopérative."""
+    agent_id: UUID
+    cooperative_id: Optional[UUID] = Field(
+        None,
+        description="Si omis, l'agent est rattaché à la coopérative appelante."
+    )
 
 class LoginRequest(BaseModel):
     email: Optional[str] = None
@@ -25,7 +38,8 @@ class LoginRequest(BaseModel):
     password: str
 
 class VerificationRequest(BaseModel):
-    email: EmailStr
+    email: Optional[EmailStr] = None
+    telephone: Optional[str] = None
     otp: str = Field(..., min_length=6, max_length=6)
 
 class SendOTPRequest(BaseModel):
@@ -57,6 +71,7 @@ class UpdateProfileRequest(BaseModel):
 class UserResponse(BaseModel):
     id: UUID
     profil_id: Optional[UUID] = None
+    cooperative_id: Optional[UUID] = None
     nom_complet: str
     pseudo: str
     email: str
@@ -75,6 +90,20 @@ class UserResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class EntiteResponse(BaseModel):
+    """Fiche d'annuaire minimale.
+
+    Volontairement dépourvue de téléphone et d'e-mail : cet annuaire est public
+    (il alimente les listes déroulantes avant connexion) et ne doit divulguer
+    aucune donnée de contact.
+    """
+    id: UUID
+    nom_complet: str
+    role: str
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class TokenResponse(BaseModel):
     message: str

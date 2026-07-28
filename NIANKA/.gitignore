@@ -11,8 +11,14 @@ __pycache__/
 .pytest_cache/
 venv/
 .venv/
+.venv*/
 env/
 ENV/
+
+# Modèles IA : artefacts de travail (backup, candidats de ré-entraînement) —
+# seul le modèle réellement chargé par l'app (model_anacarde.keras) est versionné.
+backend/modele_ia/backup/
+backend/modele_ia/*_candidate.keras
 
 # Node & Next.js Build Outputs
 node_modules/

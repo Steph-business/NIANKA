@@ -6,7 +6,7 @@ def test_notification_flow(client):
         "nom_complet": "Coopérative Test",
         "pseudo": "coop_test",
         "email": "coop@nianka.ci",
-        "password": "Password123!",
+        "password": "Password123!",  # nosec B105
         "role": "cooperative"
     }
     client.post("/api/v1/auth/register", json=reg_payload)
@@ -25,7 +25,7 @@ def test_notification_flow(client):
     # Login
     login_resp = client.post("/api/v1/auth/login", json={
         "email": "coop@nianka.ci",
-        "password": "Password123!"
+        "password": "Password123!"  # nosec B105
     })
     token = login_resp.json()["token"]
     user_id = login_resp.json()["user"]["id"]

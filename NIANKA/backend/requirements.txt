@@ -1,13 +1,40 @@
+# NIANKA — Backend FastAPI
+# IMPORTANT : utiliser Python 3.11 à 3.13. TensorFlow ne supporte pas encore
+# Python 3.14 ; sur 3.14 le service bascule automatiquement en mode heuristique
+# (l'état réel du moteur est exposé par GET /health).
+
+# --- API ---
 fastapi>=0.110.0
 uvicorn>=0.28.0
+python-multipart>=0.0.9
+
+# --- Base de données ---
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.9
-pydantic>=2.6.0
+
+# --- Validation & configuration ---
+pydantic[email]>=2.6.0
+email-validator>=2.1.0
 pydantic-settings>=2.2.0
+python-dotenv>=1.0.1
+
+# --- Sécurité ---
 PyJWT>=2.8.0
 passlib[bcrypt]>=1.7.4
 bcrypt>=4.1.0
+
+# --- Temps réel ---
 sse-starlette>=2.0.0
+
+# --- Inférence IA (modèle MobileNetV3 model_anacarde.keras) ---
+tensorflow>=2.18.0
+optree>=0.11.0
+pillow>=10.0.0
+numpy>=1.26.0
+
+# --- Certificats (QR Code du certificat de qualité) ---
+qrcode>=7.4.2
+
+# --- Tests ---
 pytest>=8.0.0
 httpx>=0.27.0
-python-dotenv>=1.0.1

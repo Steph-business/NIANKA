@@ -26,6 +26,23 @@ from backend.modules.authentification.schemas import (
 ROLES_NIANKA = ["agent", "cooperative", "entrepot", "usine", "exportateur", "admin"]
 
 
+def normalize_role(role: Optional[str]) -> str:
+    cleaned = (role or "agent").strip().lower()
+    aliases = {
+        "usineur": "usine",
+        "institution": "admin",
+        "acheteur": "exportateur",
+        "exporteur": "exportateur",
+        "usine": "usine",
+        "admin": "admin",
+        "cooperative": "cooperative",
+        "agent": "agent",
+        "entrepot": "entrepot",
+        "exportateur": "exportateur",
+    }
+    return aliases.get(cleaned, cleaned)
+
+
 class AuthService:
 
     @staticmethod
@@ -49,7 +66,7 @@ class AuthService:
     @staticmethod
     def register_user(db: Session, req: RegisterRequest) -> User:
         """Inscrit un utilisateur avec l'un des rôles NIANKA: agent, cooperative, entrepot, usine, exportateur, admin."""
-        assigned_role = (req.role or "agent").lower().strip()
+        assigned_role = normalize_role(req.role)
         if assigned_role not in ROLES_NIANKA:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -79,6 +96,27 @@ class AuthService:
             db.flush()
         profil_id = profil.id
 
+        # Rattachement Agent -> Coopérative (guide.md §6 : profiles.cooperative_id)
+        cooperative_id = None
+        if assigned_role == "agent":
+            if req.cooperative_id:
+                coop = db.query(User).filter(
+                    User.id == req.cooperative_id,
+                    User.role == "cooperative"
+                ).first()
+                if not coop:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Coopérative de rattachement introuvable."
+                    )
+                cooperative_id = coop.id
+            else:
+                # Repli : rattachement automatique à la coopérative la plus ancienne
+                # pour qu'un agent ne reste jamais orphelin (le lien reste modifiable
+                # via PATCH /auth/pisteurs/rattacher).
+                fallback = db.query(User).filter(User.role == "cooperative").order_by(User.created_at.asc()).first()
+                cooperative_id = fallback.id if fallback else None
+
         new_user = User(
             id=uuid.uuid4(),
             nom_complet=req.nom_complet,
@@ -87,11 +125,12 @@ class AuthService:
             telephone=req.telephone,
             password_hash=hash_password(req.password),
             profil_id=profil_id,
+            cooperative_id=cooperative_id,
             role=assigned_role,
-            email_verified=True,
-            is_verified=True,
+            email_verified=False,
+            is_verified=False,
             statut="actif",
-            profil_complet=True,
+            profil_complet=False,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -99,6 +138,11 @@ class AuthService:
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+
+        try:
+            AuthService.send_verification_otp(db, new_user)
+        except Exception:
+            pass
 
         return new_user
 
@@ -124,8 +168,19 @@ class AuthService:
         return otp_code
 
     @staticmethod
-    def verify_email_otp(db: Session, email: str, otp_code: str) -> User:
-        user = db.query(User).filter(func.lower(User.email) == func.lower(email)).first()
+    def verify_email_otp(db: Session, email: Optional[str], otp_code: str, telephone: Optional[str] = None) -> User:
+        user = None
+        if telephone:
+            digits_tel = "".join([c for c in telephone if c.isdigit()])
+            user = db.query(User).filter(
+                or_(
+                    func.lower(User.telephone) == func.lower(telephone),
+                    (func.replace(User.telephone, '+', '') == digits_tel) if digits_tel else False
+                )
+            ).first()
+        elif email:
+            user = db.query(User).filter(func.lower(User.email) == func.lower(email)).first()
+
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
 
@@ -153,19 +208,76 @@ class AuthService:
         return user
 
     @staticmethod
-    def login_user(db: Session, req: LoginRequest, client_ip: str = "127.0.0.1"):
-        input_val = (req.login_input or req.telephone or req.email or "").strip().lower()
-        digits_val = "".join([c for c in input_val if c.isdigit()])
+    def resolve_cooperative_id(db: Session, user: "User") -> Optional[uuid.UUID]:
+        """Coopérative destinataire des remontées terrain d'un utilisateur.
 
-        # Find user by telephone OR email OR pseudo
+        - une coopérative se représente elle-même ;
+        - un agent remonte vers sa coopérative de rattachement ;
+        - à défaut, repli sur la coopérative la plus ancienne (jamais orphelin).
+        """
+        if user.role == "cooperative":
+            return user.id
+        if getattr(user, "cooperative_id", None):
+            return user.cooperative_id
+        fallback = db.query(User).filter(User.role == "cooperative").order_by(User.created_at.asc()).first()
+        return fallback.id if fallback else None
+
+    @staticmethod
+    def rattacher_agent(db: Session, agent_id: uuid.UUID, cooperative_id: uuid.UUID) -> User:
+        """Rattache un agent de terrain à une coopérative."""
+        agent = db.query(User).filter(User.id == agent_id, User.role == "agent").first()
+        if not agent:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agent de terrain introuvable.")
+
+        coop = db.query(User).filter(User.id == cooperative_id, User.role == "cooperative").first()
+        if not coop:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Coopérative introuvable.")
+
+        agent.cooperative_id = coop.id
+        agent.updated_at = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(agent)
+        return agent
+
+    @staticmethod
+    def _find_login_user(db: Session, input_val: str) -> Optional[User]:
+        """Retrouve un compte par téléphone, e-mail ou pseudo.
+
+        Le téléphone est comparé sur ses chiffres significatifs afin d'accepter
+        indifféremment « 0101020304 », « +225 01 01 02 03 04 » ou « 2250101020304 ».
+        """
+        digits_val = "".join(c for c in input_val if c.isdigit())
+
         user = db.query(User).filter(
             or_(
                 func.lower(User.telephone) == input_val,
                 func.lower(User.email) == input_val,
                 func.lower(User.pseudo) == input_val,
-                (func.replace(User.telephone, '+', '') == digits_val) if digits_val else False
+                (func.replace(User.telephone, '+', '') == digits_val) if digits_val else False,
             )
         ).first()
+        if user or not digits_val:
+            return user
+
+        # Repli tolérant : comparaison sur les 8 derniers chiffres (numéro national CI).
+        suffix = digits_val[-8:]
+        if len(suffix) < 8:
+            return None
+        for candidate in db.query(User).filter(User.telephone.isnot(None)).all():
+            cand_digits = "".join(c for c in (candidate.telephone or "") if c.isdigit())
+            if cand_digits.endswith(suffix):
+                return candidate
+        return None
+
+    @staticmethod
+    def login_user(db: Session, req: LoginRequest, client_ip: str = "127.0.0.1"):
+        """Connexion directe par numéro de téléphone + mot de passe.
+
+        La vérification OTP n'est volontairement PAS exigée à la connexion :
+        le numéro de téléphone et le mot de passe suffisent.
+        """
+        input_val = (req.login_input or req.telephone or req.email or "").strip().lower()
+        user = AuthService._find_login_user(db, input_val)
 
         if not user or not verify_password(req.password, user.password_hash):
             raise HTTPException(
@@ -173,7 +285,12 @@ class AuthService:
                 detail="Numéro de téléphone ou mot de passe incorrect."
             )
 
-        # Update last login details
+        if (user.statut or "actif").lower() != "actif":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Ce compte est désactivé. Contactez l'administrateur NIANKA."
+            )
+
         user.derniere_connexion = datetime.now(timezone.utc)
         user.derniere_ip = client_ip
         user.email_verified = True
@@ -181,24 +298,13 @@ class AuthService:
         db.commit()
         db.refresh(user)
 
-        payload = {
+        token = create_access_token({
             "sub": str(user.id),
-            "role": user.role,
-            "email": user.email
-        }
-        token = create_access_token(payload)
-
-        return user, token
-
-        # Generate JWT
-        token_data = {
             "user_id": str(user.id),
-            "email": user.email,
             "role": user.role,
-            "profil_id": str(user.profil_id) if user.profil_id else None,
-            "is_profile_complete": user.profil_complet
-        }
-        token = create_access_token(token_data)
+            "email": user.email,
+            "cooperative_id": str(user.cooperative_id) if user.cooperative_id else None,
+        })
 
         return user, token
 

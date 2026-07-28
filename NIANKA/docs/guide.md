@@ -64,7 +64,7 @@ Le développement Frontend est structuré autour de 2 briques d'expérience util
 
 1. **Étape 1 — Prélèvement Agent (`/user/analysis`)** :
    * **Action :** Scan photo 500g sur le terrain chez le paysan.
-   * **Données enregistrées :** Photo, Grade IA (ex: Grade A), Score KOR initial (ex: 54.2 lbs), Humidité (ex: 6.8%), Geolocation GPS (`7.6938° N, 5.0303° W`).
+   * **Données enregistrées :** Photo, Grade (ex: Grade A), Score KOR initial (ex: 54.2 lbs), Humidité (ex: 6.8%), Geolocation GPS (`7.6938° N, 5.0303° W`).
 
 2. **Étape 2 — Ordre de Transfert Coopérative (`/cooperative/dashboard`)** :
    * **Action :** La coopérative consolide les sacs et clique sur **"Expédier vers un Entrepôt"**.

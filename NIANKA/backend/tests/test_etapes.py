@@ -6,6 +6,7 @@ def test_workflow_etapes_traçabilite(client):
         "nom_complet": "Agent Pisteur",
         "pseudo": "pisteur_1",
         "email": "agent@nianka.ci",
+        "telephone": "+2250700000002",
         "password": "Password123!",
         "role": "agent"
     })
@@ -14,10 +15,10 @@ def test_workflow_etapes_traçabilite(client):
     from backend.modules.authentification.models import OTP, User
     db = next(app_db_gen(client))
 
-    otp_record = db.query(OTP).join(User).filter(User.email == "agent@nianka.ci").first()
-    client.post("/api/v1/auth/verify-otp", json={"email": "agent@nianka.ci", "otp": otp_record.otp_code})
+    otp_record = db.query(OTP).join(User).filter(User.telephone == "+2250700000002").first()
+    client.post("/api/v1/auth/verify-otp", json={"telephone": "+2250700000002", "otp": otp_record.otp_code})
 
-    login_resp = client.post("/api/v1/auth/login", json={"email": "agent@nianka.ci", "password": "Password123!"})
+    login_resp = client.post("/api/v1/auth/login", json={"telephone": "+2250700000002", "password": "Password123!"})
     token = login_resp.json()["token"]
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -54,7 +55,7 @@ def test_workflow_etapes_traçabilite(client):
     assert get_trf.status_code == 200
     assert get_trf.json()["immatriculation_camion"] == "CI-482-AB"
 
-    # 5. Scan d'arbitrage par l'IA à l'Entrepôt et scellement de la vente
+    # 5. L'arbitrage est un acte d'entrepôt : un agent ne peut pas sceller la vente.
     arbitrage_payload = {
         "bordereau_id": bordereau_id,
         "scan_entrepot_image_url": "https://storage.nianka.ci/scans/entrepot_001.jpg",
@@ -62,8 +63,27 @@ def test_workflow_etapes_traçabilite(client):
         "scan_entrepot_kor": 54.0,
         "scan_entrepot_humidite": 6.8
     }
-    arbitrage_resp = client.post("/api/v1/etapes/arbitrage", json=arbitrage_payload, headers=headers)
-    assert arbitrage_resp.status_code == 201
+    refus = client.post("/api/v1/etapes/arbitrage", json=arbitrage_payload, headers=headers)
+    assert refus.status_code == 403
+
+    # 6. Le même arbitrage, réalisé par l'inspecteur d'entrepôt, scelle la vente.
+    client.post("/api/v1/auth/register", json={
+        "nom_complet": "Inspecteur Entrepot",
+        "pseudo": "inspecteur_1",
+        "email": "entrepot@nianka.ci",
+        "telephone": "+2250700000003",
+        "password": "Password123!",
+        "role": "entrepot"
+    })
+    login_entrepot = client.post("/api/v1/auth/login", json={
+        "telephone": "+2250700000003", "password": "Password123!"
+    })
+    headers_entrepot = {"Authorization": f"Bearer {login_entrepot.json()['token']}"}
+
+    arbitrage_resp = client.post("/api/v1/etapes/arbitrage", json=arbitrage_payload, headers=headers_entrepot)
+    assert arbitrage_resp.status_code == 201, arbitrage_resp.text
     res = arbitrage_resp.json()
     assert res["verdict_conforme"] is True
     assert res["statut_vente"] == "VENTE_SCELLEE"
+    # Le KOR de référence provient du scan bord champ réel, pas d'une valeur en dur.
+    assert res["scan_initial_kor"] == 54.2

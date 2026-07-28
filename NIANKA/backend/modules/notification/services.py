@@ -57,6 +57,24 @@ class NotificationService:
             query = query.filter(Notification.lu == False)
         notifs = query.order_by(Notification.cree_le.desc()).all()
 
+        # Un seul aller-retour base de données pour TOUS les scans référencés,
+        # au lieu d'une requête par notification (N+1) : avec une base
+        # Supabase distante, chaque requête individuelle coûtait facilement
+        # 100-200 ms de latence réseau — multiplié par le nombre de
+        # notifications, c'était la cause principale des listes lentes.
+        scan_ids = []
+        for n in notifs:
+            if n.reference_id:
+                try:
+                    scan_ids.append(uuid.UUID(n.reference_id))
+                except ValueError:
+                    pass
+
+        scans_by_id = {}
+        if scan_ids:
+            for scan in db.query(Scan).filter(Scan.id.in_(scan_ids)).all():
+                scans_by_id[scan.id] = scan
+
         res = []
         for n in notifs:
             n_dict = {
@@ -71,8 +89,7 @@ class NotificationService:
             }
             if n.reference_id:
                 try:
-                    scan_uuid = uuid.UUID(n.reference_id)
-                    scan = db.query(Scan).filter(Scan.id == scan_uuid).first()
+                    scan = scans_by_id.get(uuid.UUID(n.reference_id))
                     if scan:
                         n_dict["scan"] = {
                             "id": str(scan.id),
@@ -82,7 +99,7 @@ class NotificationService:
                             "humidite": scan.humidite,
                             "defauts": scan.defauts
                         }
-                except Exception:
+                except ValueError:
                     pass
             res.append(n_dict)
         return res

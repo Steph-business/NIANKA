@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <rect width="300" height="300" fill="#ffffff"/>
+  
+  <!-- Shadow -->
+  <ellipse cx="150" cy="245" rx="100" ry="18" fill="rgba(0,0,0,0.08)"/>
+
+  <g transform="translate(45, 40)">
+    <!-- Banana 1 -->
+    <path d="M 30,30 Q 110,180 200,120 Q 120,220 20,40 Z" fill="#FFE135" stroke="#E6C200" stroke-width="3"/>
+    <path d="M 30,30 Q 110,180 200,120" fill="none" stroke="#F5C400" stroke-width="4" stroke-linecap="round"/>
+    <!-- Stem & Crown -->
+    <path d="M 25,25 L 15,15 L 25,10 L 32,22 Z" fill="#5D8AA8"/>
+    <path d="M 200,120 L 210,125 L 205,132 Z" fill="#6B4226"/>
+
+    <!-- Banana 2 (Bunch overlay) -->
+    <path d="M 40,20 Q 130,160 215,90 Q 130,200 30,30 Z" fill="#FFEB3B" stroke="#FBC02D" stroke-width="3"/>
+    <path d="M 40,20 Q 130,160 215,90" fill="none" stroke="#FDD835" stroke-width="4" stroke-linecap="round"/>
+    
+    <!-- Banana 3 -->
+    <path d="M 55,10 Q 150,140 225,65 Q 140,180 45,20 Z" fill="#FFF176" stroke="#FBC02D" stroke-width="2"/>
+
+    <!-- Crown Top Join -->
+    <path d="M 25,15 C 35,5 50,5 60,15 L 45,30 Z" fill="#43A047"/>
+  </g>
+</svg>
