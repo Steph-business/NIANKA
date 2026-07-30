@@ -23,10 +23,10 @@ export const PrintableFullReport: React.FC<PrintableFullReportProps> = ({ lot })
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #0F172A', paddingBottom: '16px', marginBottom: '24px' }}>
         <div>
           <div style={{ fontSize: '10px', fontWeight: 900, color: '#1a6b0a', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-            NIANKA — RAPPORT DE TRAÇABILITÉ COMPLET
+            NIANKA RAPPORT DE TRAÇABILITÉ COMPLET
           </div>
           <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: '6px 0 4px' }}>
-            RAPPORT COMPLET DU LOT #{lot.numero_bordereau}
+            RAPPORT COMPLET DU LOT {lot.numero_bordereau}
           </h2>
           <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
             DOCUMENT DE TRAÇABILITÉ DE LA COLLECTE À L&apos;ENTREPÔT
@@ -62,7 +62,7 @@ export const PrintableFullReport: React.FC<PrintableFullReportProps> = ({ lot })
       <div style={{ marginBottom: '24px' }}>
         <h3 style={{ fontSize: '14px', fontWeight: 900, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           {lot.verdict_conforme ? <ShieldCheck size={18} color="#1a6b0a" /> : <AlertTriangle size={18} color="#DC2626" />}
-          Comparaison & Arbitrage IA
+          Comparaison & Arbitrage
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div style={{ backgroundColor: '#F8FAFC', borderRadius: '10px', padding: '16px', border: '1px solid #E2E8F0' }}>
@@ -87,7 +87,7 @@ export const PrintableFullReport: React.FC<PrintableFullReportProps> = ({ lot })
         <div style={{ fontSize: '12px', fontWeight: 700, marginTop: '10px', textAlign: 'center', color: lot.verdict_conforme ? '#166534' : '#991B1B' }}>
           {lot.verdict_conforme
             ? `✓ Verdict de conformité : écart de ${lot.delta_kor} lbs, aucune dégradation significative détectée durant le transport.`
-            : `⚠ Écart détecté : ${lot.delta_kor} lbs entre la collecte et le déchargement — dégradation constatée durant le transport.`}
+            : `⚠ Écart détecté : ${lot.delta_kor} lbs entre la collecte et le déchargement dégradation constatée durant le transport.`}
         </div>
       </div>
 
@@ -95,7 +95,7 @@ export const PrintableFullReport: React.FC<PrintableFullReportProps> = ({ lot })
         <div style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.6 }}>
           Ce rapport complet atteste de la traçabilité et de la qualité du lot depuis sa collecte jusqu&apos;à sa validation à l&apos;entrepôt.
           <br />
-          Généré par la plateforme NIANKA — {date}
+          Généré par la plateforme NIANKA {date}
         </div>
       </div>
     </div>

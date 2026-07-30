@@ -148,7 +148,7 @@ def rattacher_pisteur(
 def list_acheteurs(
     role: Optional[str] = Query(None, description="Filtrer par rôle d'acheteur: usine ou exportateur"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["entrepot", "cooperative", "admin"]))
+    current_user: User = Depends(get_current_user)
 ):
     """Liste les acheteurs / partenaires de commercialisation disponibles pour l'entrepôt."""
     allowed_roles = ["usine", "exportateur"]

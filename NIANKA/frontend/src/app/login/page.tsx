@@ -169,7 +169,7 @@ export default function LoginPage() {
           </div>
 
           <h2 className={styles.heroTitle}>
-            Optimisez vos contrôles avec l&apos;Intelligence Artificielle
+            Optimisez vos contrôles avec l&apos;Système Numérique
           </h2>
 
           <p className={styles.heroText}>
@@ -191,7 +191,7 @@ export default function LoginPage() {
         </div>
 
         <div className={styles.footerText}>
-          © {new Date().getFullYear()} NIANKA AI — Tous droits réservés.
+          © {new Date().getFullYear()} NIANKA AI Tous droits réservés.
         </div>
       </div>
 
@@ -386,7 +386,7 @@ export default function LoginPage() {
                       required
                     >
                       {cooperatives.length === 0 ? (
-                        <option value="">Aucune coopérative inscrite — créez-en une d&apos;abord</option>
+                        <option value="">Aucune coopérative inscrite créez-en une d&apos;abord</option>
                       ) : (
                         <>
                           <option value="">Sélectionnez votre coopérative</option>

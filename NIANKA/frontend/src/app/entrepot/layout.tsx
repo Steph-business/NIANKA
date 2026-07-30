@@ -22,7 +22,8 @@ export default function EntrepotLayout({ children }: { children: React.ReactNode
 
   const navItems = [
     { label: 'Gestion des Stocks & Transit', href: '/entrepot/dashboard', icon: Warehouse },
-    { label: 'Scan d\'Arbitrage Officiel IA', href: '/entrepot/analysis', icon: Camera },
+    { label: 'Scan d\'Arbitrage Officiel', href: '/entrepot/analysis', icon: Camera },
+
     { label: 'Rapports & Bilan Central', href: '/entrepot/reports', icon: FileBarChart },
     { label: 'Historique des Réceptions', href: '/entrepot/history', icon: History },
     { label: 'Paramètres', href: '/entrepot/settings', icon: Settings },

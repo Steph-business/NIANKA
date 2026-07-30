@@ -17,6 +17,9 @@ export default function UserAnalysisPage() {
   const [loadingCooperatives, setLoadingCooperatives] = useState(true);
   const [totalWeight, setTotalWeight] = useState('');
   const [sampleWeight, setSampleWeight] = useState('');
+  // Relevé de l'humidimètre : facultatif, mais c'est la seule vraie mesure
+  // physique que l'agent peut apporter l'IA ne peut pas la déduire d'une photo.
+  const [humiditeMesuree, setHumiditeMesuree] = useState('');
   const [gps, setGps] = useState('');
   const [fetchingGps, setFetchingGps] = useState(false);
   const [isSecureConnection, setIsSecureConnection] = useState(true);
@@ -97,6 +100,14 @@ export default function UserAnalysisPage() {
       setErrorMessage("Le poids de l'échantillon ne peut pas dépasser le poids total du lot.");
       return;
     }
+    // Champ facultatif : on ne bloque que si une valeur saisie est aberrante.
+    if (humiditeMesuree) {
+      const h = parseFloat(humiditeMesuree);
+      if (isNaN(h) || h < 0 || h > 30) {
+        setErrorMessage("Le taux d'humidité relevé doit être compris entre 0 et 30 %.");
+        return;
+      }
+    }
     if (!selectedFile) {
       setErrorMessage("Veuillez capturer ou importer la photo de l'échantillon avant de lancer l'analyse.");
       return;
@@ -117,6 +128,7 @@ export default function UserAnalysisPage() {
       formData.append('cooperative', cooperative || 'Coop. Anacarde');
       formData.append('weight_kg', totalWeight);
       formData.append('sample_weight_kg', sampleWeight);
+      if (humiditeMesuree) formData.append('humidite_mesuree', humiditeMesuree);
       formData.append('gps', gps);
       formData.append('etape', 'collecte_terrain');
 
@@ -308,6 +320,43 @@ export default function UserAnalysisPage() {
                   }}
                   required
                 />
+              </div>
+            </div>
+
+            {/* Relevé de l'humidimètre : seule mesure physique réelle que
+                l'agent peut apporter. Facultative, mais elle remplace alors
+                l'estimation de l'IA. */}
+            <div style={{ marginTop: '14px' }}>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                Humidité relevée (%) <span style={{ color: '#94A3B8', fontWeight: 600 }}></span>
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="30"
+                  value={humiditeMesuree}
+                  onChange={e => setHumiditeMesuree(e.target.value)}
+                  placeholder="Ex: 7.5"
+                  style={{
+                    width: '140px',
+                    padding: '11px 14px',
+                    border: humiditeMesuree ? '1.5px solid #1a6b0a' : '1.5px solid #CBD5E1',
+                    borderRadius: '10px',
+                    fontSize: '13.5px',
+                    color: '#0F172A',
+                    outline: 'none',
+                    backgroundColor: '#ffffff',
+                    boxSizing: 'border-box',
+                    fontWeight: 700,
+                  }}
+                />
+                <span style={{ fontSize: '11.5px', color: humiditeMesuree ? '#1a6b0a' : '#94A3B8', fontWeight: 600, lineHeight: 1.4 }}>
+                  {humiditeMesuree
+                    ? '✓ Mesure réelle remplacera l’estimation de l’IA'
+                    : 'Saisir la valeur lue sur l’humidimètre.'}
+                </span>
               </div>
             </div>
           </div>

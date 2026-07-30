@@ -11,9 +11,19 @@ if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
 # Configure Engine
+#
+# `pool_pre_ping` ping systematiquement la connexion (un aller-retour reseau)
+# AVANT chaque requete reelle (un second aller-retour). Vers une base distante
+# (Supabase eu-west-1, ~235ms l'aller-retour depuis la Cote d'Ivoire mesure en
+# pratique), ca double le temps de chaque appel API sans raison : 900ms au
+# lieu de 450ms pour une requete qui ne lit qu'une poignee de lignes.
+# `pool_recycle` obtient la meme protection contre les connexions perimees
+# (le pooler Supabase ferme les connexions inactives) sans payer ce cout a
+# chaque checkout : une connexion plus vieille que ce delai est simplement
+# recreee au lieu d'etre reutilisee.
 engine = create_engine(
     db_url,
-    pool_pre_ping=True,
+    pool_recycle=270,
     pool_size=10,
     max_overflow=20,
     connect_args={"sslmode": "require"} if "supabase.com" in db_url else {}

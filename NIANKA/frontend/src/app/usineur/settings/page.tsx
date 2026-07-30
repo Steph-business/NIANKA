@@ -27,9 +27,9 @@ export default function UsineurSettingsPage() {
   }, []);
 
   /** Le nom est réellement persisté en base (PUT /auth/me). Le seuil KOR
-   * minimum d'achat n'a pas d'équivalent côté serveur — le filtre affiché sur
+   * minimum d'achat n'a pas d'équivalent côté serveur le filtre affiché sur
    * le tableau de bord usinier est un filtre d'affichage local, pas une règle
-   * d'achat appliquée serveur — il est donc sauvegardé localement. */
+   * d'achat appliquée serveur il est donc sauvegardé localement. */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);

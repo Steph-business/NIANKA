@@ -247,34 +247,83 @@ class EtapesService:
     # ------------------------------------------------------------------ #
 
     @staticmethod
+    def serialize_bordereaux_bulk(
+        db: Session, bordereaux: List[BordereauTransfert]
+    ) -> List[Dict[str, Any]]:
+        """Sérialise une liste de bordereaux avec un nombre CONSTANT de requêtes.
+
+        La version ligne par ligne émettait 6 requêtes par bordereau (scan
+        initial, arbitrage, nom coopérative, nom entrepôt, nom agent, puis le
+        scan à nouveau via serialize_scan). Mesuré à 2,4 s pour 3 bordereaux
+        seulement sur une base distante — et ~15 s pour 20 lots. On résout donc
+        tout en masse en 3 requêtes, quel que soit le nombre de lignes, comme le
+        fait déjà list_lots_certifies.
+        """
+        if not bordereaux:
+            return []
+
+        scan_ids = {b.scan_initial_id for b in bordereaux if b.scan_initial_id}
+        scans_par_id = {
+            s.id: s for s in db.query(Scan).filter(Scan.id.in_(scan_ids)).all()
+        } if scan_ids else {}
+
+        bordereau_ids = {b.id for b in bordereaux}
+        arbitres_ids = {
+            a.bordereau_id
+            for a in db.query(ArbitrageLot.bordereau_id)
+            .filter(ArbitrageLot.bordereau_id.in_(bordereau_ids))
+            .all()
+        } if bordereau_ids else set()
+
+        user_ids = set()
+        for b in bordereaux:
+            user_ids.add(b.cooperative_id)
+            user_ids.add(b.entrepot_id)
+        for s in scans_par_id.values():
+            user_ids.add(s.agent_id)
+        noms = EtapesService._noms_bulk(db, user_ids)
+
+        resultats: List[Dict[str, Any]] = []
+        for b in bordereaux:
+            scan = scans_par_id.get(b.scan_initial_id) if b.scan_initial_id else None
+            is_arbitre = (b.id in arbitres_ids) or (b.statut in ("ARBITRE", "VENDU"))
+            resultats.append({
+                "id": b.id,
+                "numero_bordereau": b.numero_bordereau,
+                "cooperative_id": b.cooperative_id,
+                "entrepot_id": b.entrepot_id,
+                "scan_initial_id": b.scan_initial_id,
+                "immatriculation_camion": b.immatriculation_camion,
+                "nom_chauffeur": b.nom_chauffeur,
+                "volume_tonnes": b.volume_tonnes,
+                "grade_lot": b.grade_lot,
+                "statut": b.statut,
+                "qr_payload": b.qr_payload,
+                "created_at": b.created_at,
+                "nom_cooperative": noms.get(b.cooperative_id),
+                "nom_entrepot": noms.get(b.entrepot_id),
+                "nom_agent": noms.get(scan.agent_id) if scan else None,
+                "scan_initial": EtapesService.serialize_scan(db, scan, noms),
+                "kor_initial": scan.score_kor if scan else None,
+                "humidite_initiale": scan.humidite if scan else None,
+                "arbitre": is_arbitre,
+            })
+        return resultats
+
+    @staticmethod
     def serialize_bordereau(db: Session, b: BordereauTransfert) -> Dict[str, Any]:
         """Bordereau enrichi : la coopérative, l'entrepôt et surtout le scan
         bord champ sont résolus côté serveur pour permettre le pré-remplissage
-        instantané à la réception (guide.md §4 étape 4)."""
-        scan = db.query(Scan).filter(Scan.id == b.scan_initial_id).first()
-        arbitre = db.query(ArbitrageLot).filter(ArbitrageLot.bordereau_id == b.id).first()
+        instantané à la réception (guide.md §4 étape 4).
 
-        return {
-            "id": b.id,
-            "numero_bordereau": b.numero_bordereau,
-            "cooperative_id": b.cooperative_id,
-            "entrepot_id": b.entrepot_id,
-            "scan_initial_id": b.scan_initial_id,
-            "immatriculation_camion": b.immatriculation_camion,
-            "nom_chauffeur": b.nom_chauffeur,
-            "volume_tonnes": b.volume_tonnes,
-            "grade_lot": b.grade_lot,
-            "statut": b.statut,
-            "qr_payload": b.qr_payload,
-            "created_at": b.created_at,
-            "nom_cooperative": EtapesService._nom(db, b.cooperative_id),
-            "nom_entrepot": EtapesService._nom(db, b.entrepot_id),
-            "nom_agent": EtapesService._nom(db, scan.agent_id) if scan else None,
-            "scan_initial": EtapesService.serialize_scan(db, scan),
-            "kor_initial": scan.score_kor if scan else None,
-            "humidite_initiale": scan.humidite if scan else None,
-            "arbitre": arbitre is not None,
-        }
+        Délègue à la version en masse pour garder UN SEUL chemin de code : les
+        deux variantes ne peuvent donc pas divergerner silencieusement.
+        """
+
+        if b is None:
+            return None
+        return EtapesService.serialize_bordereaux_bulk(db, [b])[0]
+
 
     @staticmethod
     def _resoudre_scan_initial(db: Session, cooperative_id: uuid.UUID, req: TransferOrderCreate) -> Scan:
@@ -464,7 +513,14 @@ class EtapesService:
                 status_code=404,
                 detail=f"Bordereau de transfert « {identifier} » introuvable."
             )
+
+        if bordereau.statut in ("EN TRANSIT", "EN_TRANSIT"):
+            bordereau.statut = "EN_TRAITEMENT"
+            db.commit()
+            db.refresh(bordereau)
+
         return bordereau
+
 
     @staticmethod
     def list_transfers(db: Session, user: User) -> List[BordereauTransfert]:
@@ -524,15 +580,23 @@ class EtapesService:
 
         scan_initial = db.query(Scan).filter(Scan.id == bordereau.scan_initial_id).first()
 
+        # Les relevés physiques priment toujours sur les estimations de l'IA :
+        # le KOR vient du test de coupe, l'humidité de l'humidimètre. Aucune
+        # photo ne peut produire ces deux valeurs.
+        kor_final = req.kor_mesure if req.kor_mesure is not None else req.scan_entrepot_kor
+        humidite_finale = req.humidite_mesuree if req.humidite_mesuree is not None else req.scan_entrepot_humidite
+        kor_source = "mesure" if req.kor_mesure is not None else "estimation_ia"
+        humidite_source = "mesure" if req.humidite_mesuree is not None else "estimation_ia"
+
         scan_entrepot = Scan(
             id=uuid.uuid4(),
             agent_id=inspecteur_id,
             image_url=req.scan_entrepot_image_url,
             grade_ia=req.scan_entrepot_grade,
             score_confiance=0.98,
-            score_kor=req.scan_entrepot_kor,
-            humidite=req.scan_entrepot_humidite,
-            defauts={"moisissure": 0.0, "pique": 0.01},
+            score_kor=kor_final,
+            humidite=humidite_finale,
+            defauts={"kor_source": kor_source, "humidite_source": humidite_source},
             gps_lat=scan_initial.gps_lat if scan_initial else None,
             gps_long=scan_initial.gps_long if scan_initial else None,
             etape="entrepot_arbitrage",
@@ -541,9 +605,32 @@ class EtapesService:
         db.add(scan_entrepot)
         db.flush()
 
-        kor_initial = scan_initial.score_kor if scan_initial and scan_initial.score_kor is not None else req.scan_entrepot_kor
-        delta_kor = abs(req.scan_entrepot_kor - kor_initial)
-        conforme = delta_kor <= SEUIL_CONFORMITE_KOR
+        # Verdict de conformité fondé sur des critères EXPLICABLES, et non sur
+        # un seul écart entre deux estimations. Chaque motif de rejet est
+        # conservé pour pouvoir être justifié à l'acheteur.
+        motifs: List[str] = []
+
+        kor_initial = scan_initial.score_kor if scan_initial else None
+        if kor_initial is not None and kor_final is not None:
+            delta_kor = abs(kor_final - kor_initial)
+            if delta_kor > SEUIL_CONFORMITE_KOR:
+                motifs.append(f"écart de rendement de {round(delta_kor, 2)} lbs entre la collecte et le déchargement")
+        else:
+            delta_kor = 0.0
+
+        # Seuil filière : au-delà de 10 % d'humidité, le risque de moisissure
+        # au stockage devient significatif.
+        if humidite_finale is not None and humidite_finale > 10:
+            motifs.append(f"humidité de {humidite_finale} % supérieure au seuil de stockage (10 %)")
+
+        # Dégradation visuelle entre les deux scans (ex. « Grade A » -> « Rejeté »).
+        ORDRE = {"grade a": 0, "grade b": 1, "grade c": 2, "rejeté": 3, "rejete": 3}
+        rang_initial = ORDRE.get((scan_initial.grade_ia or "").lower()) if scan_initial else None
+        rang_final = ORDRE.get((req.scan_entrepot_grade or "").lower())
+        if rang_initial is not None and rang_final is not None and rang_final > rang_initial + 1:
+            motifs.append("dégradation visuelle marquée entre la collecte et le déchargement")
+
+        conforme = len(motifs) == 0
 
         bordereau.statut = "ARBITRE"
         bordereau.entrepot_id = inspecteur_id
@@ -581,8 +668,8 @@ class EtapesService:
                 type="arbitrage",
                 contenu=(
                     f"Vente scellée : bordereau {bordereau.numero_bordereau} arbitré par "
-                    f"{nom_entrepot}. Verdict {verdict} (KOR {kor_initial} → {req.scan_entrepot_kor}, "
-                    f"écart {round(delta_kor, 2)} lbs)."
+                    f"{nom_entrepot}. Verdict {verdict}"
+                    + (f" — {' ; '.join(motifs)}." if motifs else ".")
                     + (f" Acheteur : {acheteur.nom_complet}." if acheteur else "")
                 ),
                 reference_id=bordereau.numero_bordereau
@@ -613,8 +700,12 @@ class EtapesService:
         role = (user.role or "").lower()
         query = db.query(ArbitrageLot)
 
-        if role in ("usine", "exportateur"):
-            query = query.filter(ArbitrageLot.acheteur_id == user.id)
+        if role in ("usine", "usineur", "exportateur", "exporter", "acheteur"):
+            query = query.filter(
+                (ArbitrageLot.acheteur_id == user.id)
+                | (ArbitrageLot.acheteur_id.is_(None))
+            )
+
         elif role == "entrepot":
             query = query.filter(ArbitrageLot.inspecteur_id == user.id)
         elif role == "cooperative":
@@ -699,6 +790,11 @@ class EtapesService:
                 "statut_vente": arb.statut_vente,
                 "certificat_pdf_url": arb.certificat_pdf_url,
                 "scelle_a": arb.scelle_a,
+                # Horodatage des 4 étapes réelles de la chaîne, pour la vue
+                # "parcours du lot" (traçabilité de bout en bout).
+                "date_collecte": scan_initial.date_scan if scan_initial else None,
+                "date_expedition": bordereau.created_at,
+                "date_arbitrage": scan_entrepot.date_scan if scan_entrepot else None,
             })
         return resultats
 

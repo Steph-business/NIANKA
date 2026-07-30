@@ -223,7 +223,7 @@ export default function UsineurDashboard() {
                 return (
                 <tr key={lot.arbitrage_id} style={{ borderBottom: idx < filteredLots.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
                 <td style={{ padding: '18px 16px', fontSize: '13.5px', fontWeight: 800, color: '#1a6b0a' }}>
-                  #{lot.numero_bordereau}
+                  {lot.numero_bordereau}
                   <div style={{ fontSize: '10.5px', fontWeight: 600, color: lot.verdict_conforme ? '#10B981' : '#DC2626' }}>
                     {lot.verdict_conforme ? '✓ Arbitrage conforme' : `⚠ Écart ${lot.delta_kor} lbs`}
                   </div>

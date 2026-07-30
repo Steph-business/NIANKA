@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Package, CheckCircle2, AlertTriangle, Info, MapPin, X, TrendingUp, List, Map as MapIcon } from 'lucide-react';
 import { api, TraceabilityStats, ScanData, UserProfile } from '@/lib/api';
+import { libelleGrade } from '@/lib/grades';
 
 interface Defauts {
   defect_rate_pct?: number;
@@ -202,10 +203,10 @@ export default function AdminDashboard() {
             </span>
           </div>
           <div style={{ marginTop: '20px' }}>
-            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Rendement en amandes (KOR) Moyen</div>
+            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Rendement (KOR estimé) Moyen</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>{stats ? stats.kor_moyen : '...'}</span>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#64748B' }}>lbs</span>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#64748B' }}>lbs / Sac</span>
             </div>
           </div>
         </div>
@@ -315,8 +316,8 @@ export default function AdminDashboard() {
                 ? 'Lot rejeté par l’IA'
                 : humiditeElevee
                   ? `Taux d’humidité élevé (${scan.humidite?.toFixed(1)}%)`
-                  : `Qualité sous les standards (${scan.grade_ia})`;
-              const sousTitre = [d.cooperative_saisie, scan.nom_agent].filter(Boolean).join(' — ') || 'Origine non précisée';
+                  : `Qualité sous les standards (${libelleGrade(scan.grade_ia).label})`;
+              const sousTitre = [d.cooperative_saisie, scan.nom_agent].filter(Boolean).join(' ') || 'Origine non précisée';
 
               return (
                 <div key={scan.id} style={{
@@ -340,7 +341,7 @@ export default function AdminDashboard() {
                 <TrendingUp size={17} color="#10B981" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: '#065F46' }}>
-                    Meilleur lot : {meilleurLot.score_kor?.toFixed(1)} lbs ({meilleurLot.grade_ia})
+                    Meilleur lot : {meilleurLot.score_kor?.toFixed(1)} lbs ({libelleGrade(meilleurLot.grade_ia).label})
                   </div>
                   <div style={{ fontSize: '11px', color: '#047857', fontWeight: 500 }}>
                     {meilleurLot.nom_agent || 'Agent'} · {tempsRelatif(meilleurLot.date_scan)}
@@ -391,7 +392,7 @@ export default function AdminDashboard() {
               {geoScans.map(pt => (
                 <div
                   key={pt.id}
-                  title={`${pt.label} — ${pt.lat.toFixed(4)}, ${pt.long.toFixed(4)}`}
+                  title={`${pt.label} ${pt.lat.toFixed(4)}, ${pt.long.toFixed(4)}`}
                   style={{
                     position: 'absolute', top: `${pt.top}%`, left: `${pt.left}%`, transform: 'translate(-50%, -50%)',
                     backgroundColor: pt.alerte ? '#EF4444' : '#10B981', color: '#fff', padding: '4px 10px', borderRadius: '16px',
@@ -412,7 +413,7 @@ export default function AdminDashboard() {
                   borderLeft: `3px solid ${pt.alerte ? '#EF4444' : '#10B981'}`,
                 }}>
                   <div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A' }}>{pt.label}{pt.sub ? ` — ${pt.sub}` : ''}</div>
+                    <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F172A' }}>{pt.label}{pt.sub ? ` ${pt.sub}` : ''}</div>
                     <div style={{ fontSize: '10.5px', color: '#94A3B8' }}>{pt.lat.toFixed(4)}, {pt.long.toFixed(4)} · {pt.heure}</div>
                   </div>
                   {pt.alerte && <AlertTriangle size={15} color="#EF4444" />}
@@ -465,7 +466,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Floating Bottom Toast Notification — dernier scan terrain réel */}
+      {/* Floating Bottom Toast Notification dernier scan terrain réel */}
       {showToast && dernierScan && (
         <div style={{
           position: 'fixed', bottom: '24px', right: '24px', backgroundColor: '#0F172A', color: '#ffffff',
@@ -474,8 +475,8 @@ export default function AdminDashboard() {
         }}>
           <Info size={18} color="#40BB1B" />
           <div style={{ fontSize: '12.5px', fontWeight: 600 }}>
-            <strong>Nouveau lot analysé</strong> — LOT-{dernierScan.id.slice(0, 8).toUpperCase()} :
-            KOR {dernierScan.score_kor?.toFixed(1) ?? '—'} ({dernierScan.grade_ia})
+            <strong>Nouveau lot analysé</strong> LOT-{dernierScan.id.slice(0, 8).toUpperCase()} :
+            KOR {dernierScan.score_kor?.toFixed(1) ?? '—'} ({libelleGrade(dernierScan.grade_ia).label})
           </div>
           <button
             onClick={() => setShowToast(false)}

@@ -155,8 +155,15 @@ class ArbitrageCreate(BaseModel):
     bordereau_id: UUID
     scan_entrepot_image_url: str
     scan_entrepot_grade: str = "A"
-    scan_entrepot_kor: float = 54.2
-    scan_entrepot_humidite: float = 6.8
+    # Aucune valeur par défaut inventée : « 54.2 lbs » et « 6.8 % » étaient des
+    # constantes fictives qui devenaient la vérité du lot si le client ne les
+    # envoyait pas. Un champ absent doit rester absent.
+    scan_entrepot_kor: Optional[float] = None
+    scan_entrepot_humidite: Optional[float] = None
+    # Relevés physiques réels saisis par l'inspecteur au déchargement.
+    # Le KOR ne peut PAS être déduit d'une photo : il vient du test de coupe.
+    kor_mesure: Optional[float] = None
+    humidite_mesuree: Optional[float] = None
     acheteur_id: Optional[UUID] = None
 
 class ArbitrageResponse(BaseModel):
@@ -209,5 +216,9 @@ class LotCertifieResponse(BaseModel):
     statut_vente: str
     certificat_pdf_url: Optional[str] = None
     scelle_a: datetime
+
+    date_collecte: Optional[datetime] = None
+    date_expedition: Optional[datetime] = None
+    date_arbitrage: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)

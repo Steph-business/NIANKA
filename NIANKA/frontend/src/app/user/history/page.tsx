@@ -4,12 +4,15 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { RefreshCw, Eye, Printer, ChevronLeft, ChevronRight, CheckCircle2, CloudUpload, BarChart3, Package, X } from 'lucide-react';
 import { api, ScanData } from '@/lib/api';
+import { libelleGrade } from '@/lib/grades';
 
 interface Defauts {
   weight_kg?: number;
   sample_weight_kg?: number;
   defect_rate_pct?: number;
   calibre_mm?: number;
+  /** « mesuree » = relevé humidimètre saisi par l'agent ; « estimee » = dérivé du grade. */
+  humidite_source?: 'mesuree' | 'estimee';
 }
 
 interface ScanRow extends ScanData {
@@ -28,12 +31,7 @@ export default function UserHistoryPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedScans = scans.slice(startIndex, startIndex + itemsPerPage);
 
-  const getGradeStyle = (grade: string) => {
-    if (grade === 'Grade B') return { color: '#EA580C', bg: '#FFEDD5', border: '#FDBA74' };
-    if (grade === 'Grade C') return { color: '#CA8A04', bg: '#FEF9C3', border: '#FDE047' };
-    if (grade === 'Rejeté') return { color: '#DC2626', bg: '#FEF2F2', border: '#FCA5A5' };
-    return { color: '#166534', bg: '#F0FDF4', border: '#BBF7D0' };
-  };
+  const getGradeStyle = (grade: string) => libelleGrade(grade);
 
   const loadData = async () => {
     setLoading(true);
@@ -53,16 +51,23 @@ export default function UserHistoryPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1280px' }}>
       {showModal && selectedScan && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)',
-          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff', padding: '28px 32px', borderRadius: '24px',
-            maxWidth: '520px', width: '90%', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-            position: 'relative'
-          }}>
+        <div 
+          onClick={() => setShowModal(false)}
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)',
+            display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000,
+            padding: '20px', overflowY: 'auto'
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#ffffff', padding: '28px 32px', borderRadius: '24px',
+              maxWidth: '540px', width: '100%', maxHeight: '88vh', overflowY: 'auto',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', position: 'relative'
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#1a6b0a', backgroundColor: '#F0FDF4', padding: '4px 10px', borderRadius: '12px' }}>
@@ -79,40 +84,57 @@ export default function UserHistoryPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '20px' }}>
               <div style={{ backgroundColor: '#F8FAFC', padding: '14px', borderRadius: '14px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>GRADE</div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>VERDICT DE DÉPISTAGE</div>
                 <div style={{
                   fontSize: '14px', fontWeight: 900,
                   color: getGradeStyle(selectedScan.grade_ia).color,
                   backgroundColor: getGradeStyle(selectedScan.grade_ia).bg,
                   padding: '4px 10px', borderRadius: '8px', display: 'inline-block', marginTop: '4px'
                 }}>
-                  {selectedScan.grade_ia || '—'}
+                  {libelleGrade(selectedScan.grade_ia).label}
                 </div>
               </div>
 
               <div style={{ backgroundColor: '#F8FAFC', padding: '14px', borderRadius: '14px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>RENDEMENT AMANDE (KOR)</div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>RENDEMENT AMANDE (KOR, ESTIMÉ)</div>
                 <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
                   {selectedScan.score_kor != null ? `${selectedScan.score_kor} lbs` : '—'}
                 </div>
               </div>
 
               <div style={{ backgroundColor: '#F8FAFC', padding: '14px', borderRadius: '14px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>TAUX D&apos;HUMIDITÉ</div>
-                <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
-                  {selectedScan.humidite != null ? `${selectedScan.humidite}%` : '—'}
-                </div>
+                {(() => {
+                  const mesuree = (selectedScan.defauts as Defauts | null)?.humidite_source === 'mesuree';
+                  return (
+                    <>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: mesuree ? '#1a6b0a' : '#94A3B8' }}>
+                        TAUX D&apos;HUMIDITÉ ({mesuree ? 'MESURÉ' : 'ESTIMÉ'})
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
+                        {selectedScan.humidite != null ? `${selectedScan.humidite}%` : '—'}
+                      </div>
+                      {mesuree && (
+                        <div style={{ fontSize: '10px', color: '#1a6b0a', fontWeight: 600, marginTop: '2px' }}>
+                          Relevé humidimètre
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
 
               <div style={{ backgroundColor: '#F8FAFC', padding: '14px', borderRadius: '14px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>GRAINAGE</div>
-                <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
-                  {(selectedScan.defauts as Defauts | null)?.calibre_mm != null ? `${(selectedScan.defauts as Defauts).calibre_mm} mm` : '—'}
+                <div style={{ fontSize: '14px', fontWeight: 900, color: '#94A3B8', marginTop: '2px' }}>
+                  Non mesuré
+                </div>
+                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 500, marginTop: '2px' }}>
+                  Requiert un comptage (noix/kg)
                 </div>
               </div>
 
               <div style={{ backgroundColor: '#F8FAFC', padding: '14px', borderRadius: '14px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8' }}>TAUX DE DÉFAUT</div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#1a6b0a' }}>TAUX DE DÉFAUT (MESURÉ)</div>
                 <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: '2px' }}>
                   {(selectedScan.defauts as Defauts | null)?.defect_rate_pct != null ? `${(selectedScan.defauts as Defauts).defect_rate_pct}%` : '—'}
                 </div>
@@ -221,10 +243,9 @@ export default function UserHistoryPage() {
                   <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>ÉCHANTILLON</th>
                   <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>N° DE LOT</th>
                   <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>POIDS (KG)</th>
-                  <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>GRADE</th>
-                  <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>RENDEMENT KOR</th>
-                  <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>GRAINAGE</th>
-                  <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>HUMIDITÉ</th>
+                  <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>VERDICT</th>
+                  <th title="Estimé à partir du grade IA détecté, pas une mesure de laboratoire" style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em', cursor: 'help' }}>RENDEMENT KOR*</th>
+                  <th title="Estimé à partir du grade IA détecté, pas une mesure de laboratoire" style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em', cursor: 'help' }}>HUMIDITÉ*</th>
                   <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em' }}>SYNCHRONISATION</th>
                   <th style={{ padding: '16px 16px', fontSize: '11.5px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em', textAlign: 'right' }}>ACTION</th>
                 </tr>
@@ -261,14 +282,11 @@ export default function UserHistoryPage() {
                           border: `1px solid ${styleGrade.border}`,
                           padding: '5px 12px', borderRadius: '12px',
                         }}>
-                          ● {row.grade_ia || '—'}
+                          ● {libelleGrade(row.grade_ia).label}
                         </span>
                       </td>
                       <td style={{ padding: '16px 16px', fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>
                         {row.score_kor != null ? `${row.score_kor} lbs` : '—'}
-                      </td>
-                      <td style={{ padding: '16px 16px', fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
-                        {(row.defauts as Defauts | null)?.calibre_mm != null ? `${(row.defauts as Defauts).calibre_mm} mm` : '—'}
                       </td>
                       <td style={{ padding: '16px 16px', fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
                         {row.humidite != null ? `${row.humidite}%` : '—'}
@@ -350,6 +368,10 @@ export default function UserHistoryPage() {
                   Suivant <ChevronRight size={14} />
                 </button>
               </div>
+            </div>
+
+            <div style={{ padding: '12px 20px', fontSize: '11.5px', color: '#94A3B8', fontWeight: 500, borderTop: '1px solid #F1F5F9' }}>
+              * KOR et humidité sont estimés à partir du grade IA détecté ce ne sont pas des mesures de laboratoire. Le taux de défaut, lui, est calculé par analyse réelle de l&apos;image.
             </div>
           </>
         )}

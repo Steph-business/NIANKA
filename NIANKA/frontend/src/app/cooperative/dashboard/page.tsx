@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Package, CheckCircle2, AlertTriangle, Info, MapPin, TrendingUp, Users, Radio, Navigation, Truck, ArrowRightLeft, X, FileCheck, Download, RefreshCw, ShieldCheck } from 'lucide-react';
 import { api, ScanData, TransferOrderData, TraceabilityStats, UserProfile } from '@/lib/api';
+import { libelleGrade } from '@/lib/grades';
 
 export default function CooperativeDashboard() {
   const [chartPeriod, setChartPeriod] = useState<'7d' | '30d'>('7d');
@@ -23,9 +24,9 @@ export default function CooperativeDashboard() {
 
   const [transferForm, setTransferForm] = useState({
     entrepotId: '',
-    truck: '',
-    driver: '',
-    volume: '20',
+    truck: 'CI-482-AB',
+    driver: 'Koffi B.',
+    volume: '25.0',
   });
 
   // Scans sélectionnés pour l'expédition : c'est ce qui porte la traçabilité.
@@ -53,7 +54,12 @@ export default function CooperativeDashboard() {
     setPisteurs(listePisteurs);
 
     if (listeEntrepots.length > 0) {
-      setTransferForm(f => (f.entrepotId ? f : { ...f, entrepotId: listeEntrepots[0].id }));
+      setTransferForm(f => ({
+        entrepotId: f.entrepotId || listeEntrepots[0].id,
+        truck: f.truck || 'CI-482-AB',
+        driver: f.driver || 'Koffi B.',
+        volume: f.volume || '25.0',
+      }));
     }
   };
 
@@ -176,48 +182,15 @@ export default function CooperativeDashboard() {
     }
   };
 
-  // Helper function for Grade Styling per User Specs
-  const getGradeBadge = (rawGrade: string, isValidated: boolean) => {
-    if (isValidated) {
-      return {
-        label: 'Grade A',
-        color: '#10B981',
-        bg: '#ECFDF5',
-        border: '#A7F3D0',
-      };
-    }
-    const lower = (rawGrade || '').toLowerCase();
-    if (lower.includes('rejet')) {
-      return {
-        label: 'Rejeté',
-        color: '#DC2626',
-        bg: '#FEF2F2',
-        border: '#FCA5A5',
-      };
-    }
-    if (lower.includes('grade c') || lower === 'c') {
-      return {
-        label: 'Grade C',
-        color: '#EAB308',
-        bg: '#FEFCE8',
-        border: '#FEF08A',
-      };
-    }
-    if (lower.includes('grade b') || lower === 'b' || lower.includes('réviser')) {
-      return {
-        label: 'Grade B',
-        color: '#EA580C',
-        bg: '#FFEDD5',
-        border: '#FDBA74',
-      };
-    }
-    return {
-      label: 'Grade A',
-      color: '#10B981',
-      bg: '#ECFDF5',
-      border: '#A7F3D0',
-    };
-  };
+  /** Badge du verdict de dépistage.
+   *
+   * Le statut de validation par la coopérative ne modifie PAS le verdict :
+   * l'ancienne version renvoyait « Grade A » dès qu'un lot était approuvé,
+   * quel que soit son verdict réel — un lot non conforme approuvé s'affichait
+   * donc comme premium. Approuver un lot est une décision commerciale, pas
+   * une requalification de sa qualité.
+   */
+  const getGradeBadge = (rawGrade: string, _isValidated: boolean) => libelleGrade(rawGrade);
 
   // KPI calculés sur les données réelles de la coopérative
   const totalScansCount = statsData?.total_scans_count ?? scansData.length;
@@ -369,7 +342,7 @@ export default function CooperativeDashboard() {
             </span>
           </div>
           <div style={{ marginTop: '20px' }}>
-            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Rendement en amandes (KOR) Moyen</div>
+            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Rendement (KOR estimé) Moyen</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>{avgKorScore}</span>
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#64748B' }}>lbs / Sac</span>
@@ -541,15 +514,15 @@ export default function CooperativeDashboard() {
               </tr>
             ) : expeditedTransfers.map((trf, idx) => (
               <tr key={trf.id} style={{ borderBottom: idx < expeditedTransfers.length - 1 ? '1px solid #F1F5F9' : 'none', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F8FAFC'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                <td style={{ padding: '16px 16px', fontSize: '13.5px', fontWeight: 900, color: '#1a6b0a' }}>#{trf.numero_bordereau}</td>
+                <td style={{ padding: '16px 16px', fontSize: '13.5px', fontWeight: 900, color: '#1a6b0a' }}>{trf.numero_bordereau}</td>
                 <td style={{ padding: '16px 16px' }}>
                   <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>{trf.nom_entrepot || 'Entrepôt non désigné'}</div>
                   <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 500 }}>{formatDate(trf.created_at)}</div>
                 </td>
                 <td style={{ padding: '16px 16px' }}>
-                  <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>{trf.volume_tonnes} T ({trf.grade_lot})</div>
+                  <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>{trf.volume_tonnes} T ({libelleGrade(trf.grade_lot).label})</div>
                   <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 500 }}>
-                    {trf.immatriculation_camion} — Chauffeur : {trf.nom_chauffeur} • Agent : {trf.nom_agent || '—'}
+                    {trf.immatriculation_camion} Chauffeur : {trf.nom_chauffeur} • Agent : {trf.nom_agent || '—'}
                   </div>
                 </td>
                 <td style={{ padding: '16px 16px' }}>
@@ -620,7 +593,7 @@ export default function CooperativeDashboard() {
             ) : geoScans.map((pt) => (
               <div
                 key={pt.id}
-                title={`${pt.label} — ${pt.lat.toFixed(4)}, ${pt.long.toFixed(4)}`}
+                title={`${pt.label} ${pt.lat.toFixed(4)}, ${pt.long.toFixed(4)}`}
                 style={{
                   position: 'absolute', top: `${pt.top}%`, left: `${pt.left}%`,
                   transform: 'translate(-50%, -50%)',
@@ -713,7 +686,7 @@ export default function CooperativeDashboard() {
               <form onSubmit={handleSendTransfer} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
-                    LOTS TERRAIN À EXPÉDIER — le scan sélectionné porte la traçabilité du bordereau
+                    LOTS TERRAIN À EXPÉDIER le scan sélectionné porte la traçabilité du bordereau
                   </label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#F8FAFC', padding: '12px', borderRadius: '10px', border: '1.5px solid #CBD5E1', maxHeight: '210px', overflowY: 'auto' }}>
                     {scansData.length === 0 ? (
@@ -753,7 +726,7 @@ export default function CooperativeDashboard() {
                             </div>
                           </div>
                           <div style={{ fontSize: '11.5px', fontWeight: 800, color: isChecked ? '#1a6b0a' : '#64748B', textAlign: 'right' }}>
-                            {scan.grade_ia} • KOR {scan.score_kor?.toFixed(1) ?? '—'}
+                            {libelleGrade(scan.grade_ia).label} • KOR {scan.score_kor?.toFixed(1) ?? '—'}
                             <div style={{ fontSize: '10px', fontWeight: 600 }}>
                               {poidsKg > 0 ? `${(poidsKg / 1000).toFixed(2)} T` : 'poids non saisi'}
                             </div>
@@ -860,8 +833,8 @@ export default function CooperativeDashboard() {
           position: 'fixed', inset: 0, zIndex: 60,
           backgroundColor: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
-        }}>
-          <div style={{
+        }} className="modal-backdrop-print">
+          <div className="printable-area" style={{
             backgroundColor: '#ffffff', borderRadius: '16px', padding: '28px',
             maxWidth: '560px', width: '100%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
             display: 'flex', flexDirection: 'column', gap: '20px',
@@ -871,12 +844,12 @@ export default function CooperativeDashboard() {
                 <FileCheck size={22} color="#1a6b0a" />
                 <div>
                   <h3 style={{ fontSize: '17px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-                    Bordereau de livraison #{selectedProof.numero_bordereau}
+                    Bordereau de livraison {selectedProof.numero_bordereau}
                   </h3>
                   <span style={{ fontSize: '11px', color: '#64748B' }}>Preuve officielle d&apos;expédition vers l&apos;entrepôt central</span>
                 </div>
               </div>
-              <button onClick={() => setShowProofModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <button onClick={() => setShowProofModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} className="print-hidden">
                 <X size={20} color="#64748B" />
               </button>
             </div>
@@ -897,7 +870,7 @@ export default function CooperativeDashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748B' }}>Volume &amp; qualité :</span>
                 <strong style={{ color: '#0F172A' }}>
-                  {selectedProof.volume_tonnes} T ({selectedProof.grade_lot}) — KOR {selectedProof.kor_initial ?? '—'} lbs
+                  {selectedProof.volume_tonnes} T ({libelleGrade(selectedProof.grade_lot).label}) KOR {selectedProof.kor_initial ?? '—'} lbs
                 </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -914,7 +887,17 @@ export default function CooperativeDashboard() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '12px' }} className="print-hidden">
+              <button
+                onClick={() => window.print()}
+                style={{
+                  flex: 1, padding: '12px', backgroundColor: '#ffffff', color: '#1a6b0a',
+                  border: '1.5px solid #BBF7D0', borderRadius: '10px', fontSize: '13px', fontWeight: 800,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                }}
+              >
+                <Download size={16} /> Imprimer Bordereau
+              </button>
               <a
                 href={api.etapes.certificatUrl(selectedProof.numero_bordereau)}
                 target="_blank"
@@ -925,12 +908,13 @@ export default function CooperativeDashboard() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 }}
               >
-                <Download size={16} /> Ouvrir le certificat (QR Code)
+                <Download size={16} /> Certificat (QR Code)
               </a>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

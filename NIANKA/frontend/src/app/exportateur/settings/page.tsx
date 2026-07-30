@@ -27,7 +27,7 @@ export default function ExportateurSettingsPage() {
   }, []);
 
   /** La raison sociale est réellement persistée en base (PUT /auth/me). Le
-   * port d'embarquement n'a pas d'équivalent côté serveur — il est donc
+   * port d'embarquement n'a pas d'équivalent côté serveur il est donc
    * sauvegardé localement. */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

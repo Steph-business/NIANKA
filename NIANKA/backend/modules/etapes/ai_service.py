@@ -136,6 +136,16 @@ class AnacardeClassifierService:
         predicted_code = CLASS_CODES[top_idx]
 
         metrics = self._compute_quality_metrics(top_idx, confidence)
+        # Taux de défaut : dérivé du contenu réel de la photo (taches,
+        # hétérogénéité de couleur) plutôt que d'une constante par grade.
+        # KOR, humidité et grainage restent des estimations liées au grade —
+        # aucune photo ne peut mesurer un taux d'humidité, un rendement en
+        # amande ou une taille physique fiable sans capteur ou étalonnage
+        # dédié (voir _analyze_visual_metrics).
+        try:
+            metrics.update(self._analyze_visual_metrics(img_arr))
+        except Exception as exc:
+            print(f"[WARN AI] Analyse visuelle du taux de défaut indisponible, repli sur l'estimation par grade : {exc}")
         metrics["latency_ms"] = round((time.perf_counter() - debut) * 1000, 1)
         metrics["model_engine"] = self.engine_name
         metrics["inference_mode"] = mode
@@ -196,34 +206,92 @@ class AnacardeClassifierService:
         else:
             return [0.88, 0.09, 0.02, 0.01]
 
+    def _analyze_visual_metrics(self, img_arr: np.ndarray) -> Dict[str, float]:
+        """Estime le taux de défaut à partir du CONTENU RÉEL de la photo
+        (taches sombres, hétérogénéité de couleur), au lieu d'une constante
+        figée par grade — cette valeur varie donc réellement d'une photo à
+        l'autre, contrairement à l'ancienne version.
+
+        Le grainage (taille physique du grain) a été testé avec la même
+        approche (taille apparente de l'échantillon dans le cadre), mais
+        s'est révélé peu fiable : dès que l'échantillon remplit tout le
+        cadre — ce qui est justement la consigne de prise de vue — il n'y a
+        plus de fond de référence pour évaluer une taille relative, et
+        l'estimation sature systématiquement au maximum quelle que soit la
+        vraie taille. Une mesure de calibre fiable demanderait soit un objet
+        de référence physique dans le cadre, soit un capteur dédié ; le
+        grainage reste donc une estimation liée au grade détecté.
+        """
+        if len(img_arr.shape) == 4:
+            img = img_arr[0]
+        else:
+            img = img_arr
+        img = img / 255.0
+        h, w = img.shape[0], img.shape[1]
+        gray = img.mean(axis=2)
+
+        # Fond estimé à partir des coins de l'image (rarement occupés par
+        # l'échantillon si la photo est correctement cadrée) ; sert ici
+        # seulement à isoler l'échantillon du fond pour analyser SA couleur,
+        # pas sa taille.
+        corner = max(1, min(h, w) // 10)
+        corners = np.concatenate([
+            gray[:corner, :corner].flatten(), gray[:corner, -corner:].flatten(),
+            gray[-corner:, :corner].flatten(), gray[-corner:, -corner:].flatten(),
+        ])
+        bg_level = float(np.median(corners))
+
+        fg_mask = np.abs(gray - bg_level) > 0.12
+        fg_ratio = float(fg_mask.mean())
+        if fg_ratio < 0.03 or fg_ratio > 0.95:
+            fg_mask = np.ones_like(gray, dtype=bool)
+
+        fg_pixels = gray[fg_mask]
+        if len(fg_pixels) > 10:
+            median_val = np.median(fg_pixels)
+            dark_ratio = float((fg_pixels < median_val * 0.6).mean())
+            std_val = float(fg_pixels.std())
+        else:
+            dark_ratio, std_val = 0.05, 0.1
+        defect_rate_pct = round(max(0.5, min(35.0, dark_ratio * 60.0 + std_val * 25.0)), 1)
+
+        # Les deux signaux sont exposés séparément : c'est ce qui permet de
+        # justifier le verdict à l'acheteur plutôt que de lui donner un score
+        # opaque. Chacun correspond à un défaut physique identifiable.
+        return {
+            "defect_rate_pct": defect_rate_pct,
+            "zones_sombres_pct": round(dark_ratio * 100, 1),
+            "heterogeneite_pct": round(min(100.0, std_val * 100 / 0.35), 1),
+        }
+
     def _compute_quality_metrics(self, grade_idx: int, confidence: float) -> Dict[str, Any]:
         """Calculates secondary cashew quality parameters: KOR, defect rate, caliber, moisture."""
-        if grade_idx == 0:  # Grade A
+        if grade_idx == 0:  # Grade A (Premium export)
             kor = round(49.0 + (confidence * 3.0), 1)
             defect_rate = round(1.5 + (1 - confidence) * 2.0, 1)
             calibre = 22
-            humidity = 8.5
+            humidity = 7.2  # Humidité optimale sous le seuil export de 8.0%
             certification = "Conforme Export EU / US"
             certification_color = "#10B981"
-        elif grade_idx == 1:  # Grade B
+        elif grade_idx == 1:  # Grade B (Standard)
             kor = round(45.0 + (confidence * 2.5), 1)
             defect_rate = round(3.5 + (1 - confidence) * 3.0, 1)
             calibre = 20
-            humidity = 9.8
+            humidity = 8.2  # Humidité conforme standard
             certification = "Conforme Marché Régional"
             certification_color = "#3B82F6"
-        elif grade_idx == 2:  # Grade C
+        elif grade_idx == 2:  # Grade C (Limite)
             kor = round(40.0 + (confidence * 2.0), 1)
             defect_rate = round(8.0 + (1 - confidence) * 4.0, 1)
             calibre = 18
-            humidity = 11.5
+            humidity = 9.8  # Humidité élevée / limite
             certification = "Sous-Réserve de Tri"
             certification_color = "#F59E0B"
-        else:  # Rejeté
+        else:  # Rejeté (Non conforme)
             kor = round(32.0 + (confidence * 3.0), 1)
             defect_rate = round(22.0 + (confidence * 10.0), 1)
             calibre = 15
-            humidity = 14.2
+            humidity = 13.8  # Humidité excessive / mouillée
             certification = "Non Conforme - Rejeté"
             certification_color = "#EF4444"
 

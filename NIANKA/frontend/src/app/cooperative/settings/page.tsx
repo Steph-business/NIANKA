@@ -31,7 +31,7 @@ export default function CooperativeSettingsPage() {
   }, []);
 
   /** Le nom est réellement persisté en base (PUT /auth/me). Les seuils
-   * qualité n'ont pas d'équivalent côté serveur — l'arbitrage applique un
+   * qualité n'ont pas d'équivalent côté serveur l'arbitrage applique un
    * seuil fixe (1,5 lbs d'écart KOR) indépendant de ces préférences
    * d'affichage ; elles sont donc sauvegardées localement, pas en base. */
   const handleSave = async (e: React.FormEvent) => {
@@ -148,7 +148,7 @@ export default function CooperativeSettingsPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Rendement (KOR) Minimum Grade A</label>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Rendement (KOR) minimum pour un lot conforme</label>
               <select
                 value={form.minKorGradeA}
                 onChange={e => setForm({ ...form, minKorGradeA: e.target.value })}

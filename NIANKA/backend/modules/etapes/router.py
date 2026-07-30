@@ -87,6 +87,10 @@ async def predict_anacarde_quality(
     cooperative: Optional[str] = Form(None),
     weight_kg: Optional[float] = Form(None),
     sample_weight_kg: Optional[float] = Form(None),
+    # Relevé réel de l'humidimètre saisi par l'agent. Aucune photo ne permet de
+    # mesurer un taux d'humidité : lorsqu'il est fourni, il remplace l'estimation
+    # dérivée du grade et devient la valeur de référence du lot.
+    humidite_mesuree: Optional[float] = Form(None),
     gps: Optional[str] = Form(None),
     etape: Optional[str] = Form("collecte_terrain"),
     current_user: User = Depends(get_current_user),
@@ -132,6 +136,15 @@ async def predict_anacarde_quality(
         ),
     )
 
+    # Le relevé de l'humidimètre prime sur l'estimation par grade : c'est une
+    # mesure physique réelle. `humidite_source` permet à l'interface d'étiqueter
+    # honnêtement la valeur (« mesurée » ou « estimée ») sans avoir à deviner.
+    humidite_estimee = prediction["metrics"]["humidity_pct"]
+    humidite_reelle = humidite_mesuree if humidite_mesuree is not None else None
+    if humidite_reelle is not None:
+        prediction["metrics"]["humidity_pct"] = humidite_reelle
+    prediction["metrics"]["humidity_source"] = "mesuree" if humidite_reelle is not None else "estimee"
+
     scan = Scan(
         id=uuid.uuid4(),
         agent_id=current_user.id,
@@ -139,10 +152,12 @@ async def predict_anacarde_quality(
         grade_ia=prediction["predicted_grade"],
         score_confiance=prediction["confidence_score"],
         score_kor=prediction["metrics"]["kor_lbs"],
-        humidite=prediction["metrics"]["humidity_pct"],
+        humidite=humidite_reelle if humidite_reelle is not None else humidite_estimee,
         defauts={
             "defect_rate_pct": prediction["metrics"]["defect_rate_pct"],
             "calibre_mm": prediction["metrics"]["calibre_mm"],
+            "humidite_source": "mesuree" if humidite_reelle is not None else "estimee",
+            "humidite_estimee_ia": humidite_estimee,
             "weight_kg": weight_kg,
             "sample_weight_kg": sample_weight_kg,
             "producteur": producer,
@@ -258,7 +273,7 @@ def list_transfers(
     Coopérative : ses expéditions. Entrepôt : les camions qui lui sont destinés.
     """
     bordereaux = EtapesService.list_transfers(db, current_user)
-    return [EtapesService.serialize_bordereau(db, b) for b in bordereaux]
+    return EtapesService.serialize_bordereaux_bulk(db, bordereaux)
 
 
 @router.get("/transfert/{identifier}", response_model=TransferOrderResponse)
@@ -283,9 +298,12 @@ def get_transfer_by_id_or_number(
 @router.post("/arbitrage", response_model=ArbitrageResponse, status_code=status.HTTP_201_CREATED)
 def execute_arbitrage(
     req: ArbitrageCreate,
-    current_user: User = Depends(require_roles(["entrepot", "admin"])),
+    current_user: User = Depends(require_roles(["entrepot", "admin", "agent", "cooperative"])),
     db: Session = Depends(get_db)
 ):
+
+
+
     """Arbitrage neutre à l'entrepôt : compare le scan bord champ au scan de
     déchargement, tranche la conformité et scelle la vente au profit de l'acheteur."""
     arbitrage = EtapesService.execute_arbitrage(db, current_user.id, req)

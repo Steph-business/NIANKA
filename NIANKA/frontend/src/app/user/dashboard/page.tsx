@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Package, CheckCircle2, RefreshCw, ArrowUpRight, Microscope } from 'lucide-react';
 import { api, ScanData, TraceabilityStats } from '@/lib/api';
+import { libelleGrade } from '@/lib/grades';
 
 export default function UserDashboardPage() {
   const [scans, setScans] = useState<ScanData[]>([]);
@@ -105,7 +106,7 @@ export default function UserDashboardPage() {
             </div>
           </div>
           <div style={{ marginTop: '20px' }}>
-            <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>Qualité Moyenne (KOR)</div>
+            <div title="Estimé à partir du grade IA détecté, pas une mesure de laboratoire" style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '4px', cursor: 'help' }}>Qualité Moyenne (KOR, estimé)</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
               <span style={{ fontSize: '34px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>{korMoyen}</span>
             </div>
@@ -181,37 +182,30 @@ export default function UserDashboardPage() {
               <tr style={{ borderBottom: '1.5px solid #F1F5F9' }}>
                 <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>N° SCAN</th>
                 <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>DATE & HEURE</th>
-                <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>GRADE</th>
-                <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>RENDEMENT EN AMANDES (KOR)</th>
-                <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>GRAINAGE</th>
-                <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>HUMIDITÉ</th>
+                <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8' }}>VERDICT</th>
+                <th title="Estimé à partir du grade IA détecté, pas une mesure de laboratoire" style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8', cursor: 'help' }}>KOR*</th>
+                <th title="Estimé à partir du grade IA détecté, pas une mesure de laboratoire" style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8', cursor: 'help' }}>HUMIDITÉ*</th>
                 <th style={{ padding: '14px 12px', fontSize: '11.5px', fontWeight: 800, color: '#94A3B8', textAlign: 'right' }}>STATUT</th>
               </tr>
             </thead>
             <tbody>
               {scans.slice(0, 5).map((item, idx) => (
                 <tr key={idx} style={{ borderBottom: idx < Math.min(scans.length, 5) - 1 ? '1px solid #F8FAFC' : 'none' }}>
-                  <td style={{ padding: '16px 12px', fontSize: '13.5px', fontWeight: 800, color: '#1a6b0a' }}>#{item.id?.substring(0, 8) || `SCAN-${idx + 1}`}</td>
+                  <td style={{ padding: '16px 12px', fontSize: '13.5px', fontWeight: 800, color: '#1a6b0a' }}>{item.id?.substring(0, 8) || `SCAN-${idx + 1}`}</td>
                   <td style={{ padding: '16px 12px', fontSize: '13px', color: '#475569', fontWeight: 500 }}>{item.date_scan ? new Date(item.date_scan).toLocaleString('fr-FR') : 'À l\'instant'}</td>
                   <td style={{ padding: '16px 12px' }}>
                     <span style={{
                       fontSize: '11.5px',
                       fontWeight: 800,
-                      color: item.grade_ia === 'Rejeté' ? '#EF4444' : '#1a6b0a',
-                      backgroundColor: item.grade_ia === 'Rejeté' ? '#FEF2F2' : '#F0FDF4',
+                      color: libelleGrade(item.grade_ia).color,
+                      backgroundColor: libelleGrade(item.grade_ia).bg,
                       padding: '4px 12px',
                       borderRadius: '8px',
                     }}>
-                      {item.grade_ia || '—'}
+                      {libelleGrade(item.grade_ia).label}
                     </span>
                   </td>
                   <td style={{ padding: '16px 12px', fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>{item.score_kor !== null && item.score_kor !== undefined ? `${item.score_kor} lbs` : '—'}</td>
-                  <td style={{ padding: '16px 12px', fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
-                    {(() => {
-                      const calibre = (item.defauts as { calibre_mm?: number } | null)?.calibre_mm;
-                      return calibre != null ? `${calibre} mm` : '—';
-                    })()}
-                  </td>
                   <td style={{ padding: '16px 12px', fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
                     {item.humidite != null ? `${item.humidite}%` : '—'}
                   </td>
@@ -228,6 +222,11 @@ export default function UserDashboardPage() {
               ))}
             </tbody>
           </table>
+        )}
+        {!loading && scans.length > 0 && (
+          <div style={{ padding: '12px 4px 0', fontSize: '11.5px', color: '#94A3B8', fontWeight: 500 }}>
+            * KOR et humidité sont estimés à partir du grade IA détecté ce ne sont pas des mesures de laboratoire. Le taux de défaut, lui, est calculé par analyse réelle de l&apos;image.
+          </div>
         )}
       </div>
 
@@ -249,7 +248,7 @@ export default function UserDashboardPage() {
             </h3>
             <p style={{ fontSize: '13px', color: '#64748B', margin: 0, fontWeight: 600 }}>
               {scans.length > 0
-                ? `Dernier scan : ${scans[0].grade_ia}${scans[0].score_kor !== null && scans[0].score_kor !== undefined ? ` (${scans[0].score_kor} lbs KOR)` : ''}`
+                ? `Dernier scan : ${libelleGrade(scans[0].grade_ia).label}${scans[0].score_kor !== null && scans[0].score_kor !== undefined ? ` (${scans[0].score_kor} lbs KOR estimé)` : ''}`
                 : "Aucune collecte terrain enregistrée pour l'instant."}
             </p>
           </div>

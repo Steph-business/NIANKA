@@ -29,7 +29,7 @@ export const CertificateSheet: React.FC<CertificateSheetProps> = ({ lots }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #1a6b0a', paddingBottom: '16px', marginBottom: '24px' }}>
               <div>
                 <div style={{ fontSize: '10px', fontWeight: 900, color: '#1a6b0a', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-                  RÉPUBLIQUE DE CÔTE D&apos;IVOIRE — MINISTÈRE DE L&apos;AGRICULTURE
+                  RÉPUBLIQUE DE CÔTE D&apos;IVOIRE MINISTÈRE DE L&apos;AGRICULTURE
                 </div>
                 <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '6px 0 4px' }}>
                   CERTIFICAT DE CONFORMITÉ QUALITÉ & TRAÇABILITÉ
@@ -87,7 +87,7 @@ export const CertificateSheet: React.FC<CertificateSheetProps> = ({ lots }) => {
               <div style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.6 }}>
                 Ce document certifie que le lot susmentionné a été inspecté et est conforme aux normes de qualité pour l'exportation.
                 <br />
-                Délivré le {date} — Bouaké, Côte d&apos;Ivoire
+                Délivré le {date} Bouaké, Côte d&apos;Ivoire
               </div>
             </div>
           </div>

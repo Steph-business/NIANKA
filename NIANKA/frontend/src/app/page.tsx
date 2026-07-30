@@ -122,7 +122,7 @@ export default function NiankaLandingPage() {
 
   const currentActeur = acteursData[activeActeur];
 
-  // 6 Representative Items Matrix — Grades A, B, C
+  // 6 Representative Items Matrix Grades A, B, C
   const niankaHeroItems = [
     {
       id: 'item-1',
@@ -158,7 +158,7 @@ export default function NiankaLandingPage() {
       score: 'KOR 46.8 lbs',
       moisture: '9.1% Humidité',
       defects: '2.3% Piqûres',
-      status: 'Acceptable — Séchage Requis'
+      status: 'Acceptable Séchage Requis'
     },
     {
       id: 'item-4',
@@ -194,7 +194,7 @@ export default function NiankaLandingPage() {
       score: '10.1° Brix',
       moisture: 'Sur-Maturité',
       defects: '8.5% Taches + Meurtr.',
-      status: 'Déclassé — Usage Transformation'
+      status: 'Déclassé Usage Transformation'
     }
   ];
 
@@ -382,7 +382,7 @@ export default function NiankaLandingPage() {
                       transform: isSelected ? 'scale(1.03)' : hoveredItemIndex === idx ? 'translateY(-4px)' : 'none'
                     }}>
                     
-                    {/* Grade Badge — A / B / C */}
+                    {/* Grade Badge A / B / C */}
                     <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 10 }}>
                       <span className={`grade-badge-${item.grade.toLowerCase()}`}>Grade {item.grade}</span>
                     </div>
@@ -435,7 +435,7 @@ export default function NiankaLandingPage() {
                 <span style={{ backgroundColor: '#40BB1B', color: '#ffffff', fontSize: '12px', fontWeight: 800, padding: '6px 14px', borderRadius: '9999px', display: 'inline-block' }}>
                   {selectedItem.status}
                 </span>
-                <div style={{ fontSize: '10px', color: '#a7f3d0', marginTop: '4px', fontFamily: 'monospace' }}>Inférence IA : 12 ms</div>
+                <div style={{ fontSize: '10px', color: '#a7f3d0', marginTop: '4px', fontFamily: 'monospace' }}>Inférence  12 ms</div>
               </div>
             </div>
 
@@ -660,11 +660,11 @@ export default function NiankaLandingPage() {
 
               {/* Telemetry HUD Overlay */}
               <div style={{ position: 'absolute', top: '20px', left: '20px', backgroundColor: 'rgba(5, 16, 3, 0.85)', backdropFilter: 'blur(8px)', padding: '8px 16px', borderRadius: '12px', border: '1px solid rgba(64, 187, 27, 0.4)', fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
-                SPECIMEN #{simulFiliere.toUpperCase()}-SPEC-01
+                SPECIMEN {simulFiliere.toUpperCase()}-SPEC-01
               </div>
 
               <div style={{ position: 'absolute', bottom: '20px', right: '20px', backgroundColor: 'rgba(5, 16, 3, 0.85)', backdropFilter: 'blur(8px)', padding: '8px 16px', borderRadius: '12px', border: '1px solid rgba(64, 187, 27, 0.4)', fontSize: '13px', fontWeight: 800, color: '#40BB1B' }}>
-                CONFORT IA : 99.6%
+                CONFORT  99.6%
               </div>
             </div>
 

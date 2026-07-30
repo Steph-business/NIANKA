@@ -132,7 +132,7 @@ export default function AdminHistoryPage() {
                 return (
                   <tr key={lot.id ?? idx} style={{ borderBottom: idx < lots.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
                     <td style={{ padding: '18px 20px', fontSize: '13.5px', fontWeight: 800, color: '#1a6b0a' }}>
-                      #{lot.numero_lot ?? '—'}
+                      {lot.numero_lot ?? '—'}
                     </td>
                     <td style={{ padding: '18px 20px', fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
                       {lot.nom_cooperative ?? '—'}

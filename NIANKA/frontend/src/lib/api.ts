@@ -3,6 +3,8 @@
  * Connects Next.js Frontend to FastAPI Backend Services (/api/v1)
  */
 
+import { cacheClear, cacheInvalidate, cachedGet } from './cache';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
 
 export interface UserProfile {
@@ -87,6 +89,9 @@ export interface LotCertifie {
   statut_vente: string;
   certificat_pdf_url?: string | null;
   scelle_a: string;
+  date_collecte?: string | null;
+  date_expedition?: string | null;
+  date_arbitrage?: string | null;
 }
 
 /** Rapport persisté côté serveur (table `rapports`). */
@@ -128,10 +133,18 @@ export interface PredictionResult {
   model_loaded?: boolean;
   probabilities: Record<string, number>;
   metrics: {
-    kor_lbs: number;
+    // Optionnel : un lot déjà arbitré sans relevé physique enregistré n'a
+    // pas de valeur réelle à afficher — inventer un nombre serait plus
+    // trompeur qu'un simple « — » côté écran.
+    kor_lbs?: number | null;
     defect_rate_pct: number;
+    /** Signaux bruts extraits de la photo, qui justifient le taux de défaut. */
+    zones_sombres_pct?: number;
+    heterogeneite_pct?: number;
+    /** « mesuree » si l'agent a saisi un relevé d'humidimètre, sinon « estimee ». */
+    humidity_source?: 'mesuree' | 'estimee';
     calibre_mm: number;
-    humidity_pct: number;
+    humidity_pct?: number | null;
     certification: string;
     certification_color: string;
     latency_ms: number;
@@ -198,6 +211,10 @@ export interface ArbitrageData {
   scan_entrepot_humidite?: number;
   score_kor_entrepot?: number;
   taux_humidite_entrepot?: number;
+  /** Relevé réel du test de coupe, saisi par l'inspecteur (prime sur l'estimation IA). */
+  kor_mesure?: number;
+  /** Relevé réel de l'humidimètre, saisi par l'inspecteur. */
+  humidite_mesuree?: number;
   verdict_conforme?: boolean;
   notes_arbitre?: string;
   acheteur_id?: string;
@@ -277,12 +294,17 @@ function normalizeArbitragePayload(arbitrage: ArbitrageData) {
     bordereau_id: arbitrage.bordereau_id,
     scan_entrepot_image_url: arbitrage.scan_entrepot_image_url || 'https://storage.nianka.ci/scans/entrepot-placeholder.jpg',
     scan_entrepot_grade: arbitrage.scan_entrepot_grade || 'A',
+    // Plus de valeurs de repli inventées (54.2 lbs / 6.8 %) : un relevé absent
+    // doit rester absent, sinon une constante fictive devient la vérité du lot.
     scan_entrepot_kor: typeof arbitrage.scan_entrepot_kor === 'number'
       ? arbitrage.scan_entrepot_kor
-      : (typeof arbitrage.score_kor_entrepot === 'number' ? arbitrage.score_kor_entrepot : 54.2),
+      : (typeof arbitrage.score_kor_entrepot === 'number' ? arbitrage.score_kor_entrepot : undefined),
     scan_entrepot_humidite: typeof arbitrage.scan_entrepot_humidite === 'number'
       ? arbitrage.scan_entrepot_humidite
-      : (typeof arbitrage.taux_humidite_entrepot === 'number' ? arbitrage.taux_humidite_entrepot : 6.8),
+      : (typeof arbitrage.taux_humidite_entrepot === 'number' ? arbitrage.taux_humidite_entrepot : undefined),
+    // Relevés physiques réels de l'inspecteur : ils priment côté serveur.
+    kor_mesure: arbitrage.kor_mesure,
+    humidite_mesuree: arbitrage.humidite_mesuree,
     verdict_conforme: arbitrage.verdict_conforme ?? true,
     notes_arbitre: arbitrage.notes_arbitre,
     acheteur_id: arbitrage.acheteur_id,
@@ -329,6 +351,10 @@ export function getCurrentUserProfile(): UserProfile | null {
 }
 
 export function clearAuthSession() {
+  // Le cache mémoire des lectures est vidé en même temps que la session : sans
+  // cela, les données du compte qui se déconnecte resteraient servies au compte
+  // suivant qui se connecte depuis le même onglet.
+  cacheClear();
   if (typeof window !== 'undefined') {
     localStorage.removeItem('nianka_access_token');
     localStorage.removeItem('nianka_user_profile');
@@ -403,6 +429,54 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
   return response.json();
 }
 
+/** Lecture mise en cache : instantanée si la ressource a déjà été chargée. */
+function cachedFetch<T>(endpoint: string, ttlMs?: number): Promise<T> {
+  return cachedGet<T>(endpoint, () => apiFetch<T>(endpoint), ttlMs);
+}
+
+/**
+ * Écriture : exécute la requête puis invalide TOUT le cache de lecture.
+ *
+ * L'invalidation est volontairement totale plutôt que ciblée. Une écriture dans
+ * cette application a des effets croisés (un arbitrage change à la fois les
+ * bordereaux, les lots certifiés, les statistiques et les notifications), et une
+ * invalidation partielle laisserait tôt ou tard un écran afficher une donnée
+ * périmée juste après une action — le défaut le plus visible en démonstration.
+ * Le coût est d'une requête normale au prochain affichage.
+ */
+async function mutate<T>(run: () => Promise<T>): Promise<T> {
+  const result = await run();
+  cacheInvalidate();
+  return result;
+}
+
+/**
+ * Précharge, juste après la connexion, les ressources dont l'écran d'accueil du
+ * rôle a besoin. Sans cela, seule la SECONDE visite d'un écran était instantanée
+ * (le cache n'étant rempli qu'après un premier affichage). Ici les requêtes
+ * partent pendant que l'utilisateur voit encore la redirection, si bien que le
+ * premier tableau de bord s'affiche déjà sans attente réseau.
+ *
+ * Volontairement « au mieux » : lancé sans être attendu, et tout échec est
+ * ignoré — un préchargement n'a jamais le droit de faire échouer une connexion
+ * ni d'afficher une erreur.
+ */
+function prefetchForRole(role: string): void {
+  const commun = ['/etapes/scans', '/notifications/', '/etapes/stats'];
+  const parRole: Record<string, string[]> = {
+    agent: [],
+    cooperative: ['/etapes/transferts', '/etapes/lots', '/rapports/'],
+    entrepot: ['/etapes/transferts'],
+    usine: ['/etapes/lots-certifies'],
+    exportateur: ['/etapes/lots-certifies'],
+    admin: ['/etapes/lots', '/rapports/', '/etapes/transferts'],
+  };
+  const cibles = [...commun, ...(parRole[role] ?? [])];
+  for (const endpoint of cibles) {
+    void cachedFetch(endpoint).catch(() => undefined);
+  }
+}
+
 // API Service Methods
 export const api = {
   // Authentication
@@ -410,13 +484,22 @@ export const api = {
     login: async (telephone: string, mot_de_passe: string): Promise<AuthResponse> => {
       const res = await apiFetch<AuthResponse>('/auth/login', {
         method: 'POST',
+        // Le mot de passe est aussi nettoyé : un copier-coller depuis un
+        // tableau ou un message ajoute très souvent une espace finale, et
+        // l'échec se présentait alors comme un « mot de passe incorrect »
+        // sans aucun indice pour l'utilisateur.
         body: JSON.stringify({
           login_input: telephone.trim(),
           telephone: telephone.trim(),
-          password: mot_de_passe,
+          password: mot_de_passe.trim(),
         }),
       });
+      // Le cache est vidé AVANT d'installer la nouvelle session : si un autre
+      // compte a été utilisé dans cet onglet, ses données ne doivent pas être
+      // servies au nouvel arrivant.
+      cacheClear();
       setAuthSession(res);
+      prefetchForRole(normalizeRole(res.user?.role || 'agent'));
       return res;
     },
 
@@ -461,10 +544,10 @@ export const api = {
 
     /** Met réellement à jour le profil en base (nom, téléphone...). */
     updateProfile: async (data: { nom_complet?: string; telephone?: string }): Promise<UserProfile> => {
-      const updated = await apiFetch<UserProfile>('/auth/me', {
+      const updated = await mutate(() => apiFetch<UserProfile>('/auth/me', {
         method: 'PUT',
         body: JSON.stringify(data),
-      });
+      }));
       // Répercute la mise à jour sur le profil mis en cache localement, pour
       // que la barre latérale (nom, initiales) reflète le changement sans
       // attendre une reconnexion.
@@ -476,45 +559,45 @@ export const api = {
 
     listAcheteurs: async (role?: string): Promise<UserProfile[]> => {
       const query = role ? `?role=${encodeURIComponent(role)}` : '';
-      return apiFetch<UserProfile[]>(`/auth/acheteurs${query}`);
+      return cachedFetch<UserProfile[]>(`/auth/acheteurs${query}`);
     },
 
     /** Annuaire public par rôle : coopératives, entrepôts, usiniers, exportateurs. */
     listEntites: async (role: string): Promise<UserProfile[]> => {
-      return apiFetch<UserProfile[]>(`/auth/entites?role=${encodeURIComponent(role)}`);
+      return cachedFetch<UserProfile[]>(`/auth/entites?role=${encodeURIComponent(role)}`);
     },
 
     listPisteurs: async (): Promise<UserProfile[]> => {
-      return apiFetch<UserProfile[]>('/auth/pisteurs');
+      return cachedFetch<UserProfile[]>('/auth/pisteurs');
     },
 
     rattacherPisteur: async (agent_id: string, cooperative_id?: string): Promise<UserProfile> => {
-      return apiFetch<UserProfile>('/auth/pisteurs/rattacher', {
+      return mutate(() => apiFetch<UserProfile>('/auth/pisteurs/rattacher', {
         method: 'PATCH',
         body: JSON.stringify({ agent_id, cooperative_id }),
-      });
+      }));
     },
   },
 
   // Etapes & Traceability
   etapes: {
     createLot: async (lot: LotData): Promise<LotData> => {
-      return apiFetch<LotData>('/etapes/lots', {
+      return mutate(() => apiFetch<LotData>('/etapes/lots', {
         method: 'POST',
         body: JSON.stringify(normalizeLotPayload(lot)),
-      });
+      }));
     },
 
     getLots: async (): Promise<LotData[]> => {
-      return apiFetch<LotData[]>('/etapes/lots');
+      return cachedFetch<LotData[]>('/etapes/lots');
     },
 
     getLot: async (id: string): Promise<LotData> => {
-      return apiFetch<LotData>(`/etapes/lots/${id}`);
+      return cachedFetch<LotData>(`/etapes/lots/${id}`);
     },
 
     getScans: async (): Promise<ScanData[]> => {
-      return apiFetch<ScanData[]>('/etapes/scans');
+      return cachedFetch<ScanData[]>('/etapes/scans');
     },
 
     /**
@@ -522,38 +605,38 @@ export const api = {
      * et sa coopérative de rattachement est notifiée automatiquement.
      */
     predictQuality: async (formData: FormData): Promise<PredictionResult> => {
-      return apiFetch<PredictionResult>('/etapes/predict-quality', {
+      return mutate(() => apiFetch<PredictionResult>('/etapes/predict-quality', {
         method: 'POST',
         body: formData,
-      });
+      }));
     },
 
     createTransfer: async (transfer: TransferOrderInput): Promise<TransferOrderData> => {
-      return apiFetch<TransferOrderData>('/etapes/transfert', {
+      return mutate(() => apiFetch<TransferOrderData>('/etapes/transfert', {
         method: 'POST',
         body: JSON.stringify(normalizeTransferPayload(transfer)),
-      });
+      }));
     },
 
     /** Bordereaux visibles par l'utilisateur (expéditions coop / arrivages entrepôt). */
     getTransferts: async (): Promise<TransferOrderData[]> => {
-      return apiFetch<TransferOrderData[]>('/etapes/transferts');
+      return cachedFetch<TransferOrderData[]>('/etapes/transferts');
     },
 
     getTransfer: async (identifier: string): Promise<TransferOrderData> => {
-      return apiFetch<TransferOrderData>(`/etapes/transfert/${encodeURIComponent(identifier)}`);
+      return cachedFetch<TransferOrderData>(`/etapes/transfert/${encodeURIComponent(identifier)}`);
     },
 
     executeArbitrage: async (arbitrage: ArbitrageData) => {
-      return apiFetch('/etapes/arbitrage', {
+      return mutate(() => apiFetch('/etapes/arbitrage', {
         method: 'POST',
         body: JSON.stringify(normalizeArbitragePayload(arbitrage)),
-      });
+      }));
     },
 
     /** Catalogue des lots certifiés attribués à l'acheteur connecté (étape 5). */
     getLotsCertifies: async (): Promise<LotCertifie[]> => {
-      return apiFetch<LotCertifie[]>('/etapes/lots-certifies');
+      return cachedFetch<LotCertifie[]>('/etapes/lots-certifies');
     },
 
     /** URL du certificat imprimable (document public vérifiable par QR Code). */
@@ -561,33 +644,33 @@ export const api = {
       `${API_BASE_URL}/etapes/certificat/${encodeURIComponent(numeroBordereau)}`,
 
     getStats: async (): Promise<TraceabilityStats> => {
-      return apiFetch<TraceabilityStats>('/etapes/stats');
+      return cachedFetch<TraceabilityStats>('/etapes/stats');
     },
   },
 
   // Notifications
   notifications: {
     list: async (unreadOnly?: boolean): Promise<NotificationItem[]> => {
-      return apiFetch<NotificationItem[]>(`/notifications/${unreadOnly ? '?unread_only=true' : ''}`);
+      return cachedFetch<NotificationItem[]>(`/notifications/${unreadOnly ? '?unread_only=true' : ''}`);
     },
     markRead: async (id: string) => {
-      return apiFetch<{ message: string }>(`/notifications/${id}/read`, { method: 'PATCH' });
+      return mutate(() => apiFetch<{ message: string }>(`/notifications/${id}/read`, { method: 'PATCH' }));
     },
     markAllRead: async () => {
-      return apiFetch<{ message: string }>('/notifications/read-all', { method: 'PATCH' });
+      return mutate(() => apiFetch<{ message: string }>('/notifications/read-all', { method: 'PATCH' }));
     },
   },
 
   // Reports
   rapports: {
     list: async (): Promise<RapportData[]> => {
-      return apiFetch<RapportData[]>('/rapports/');
+      return cachedFetch<RapportData[]>('/rapports/');
     },
     generate: async (params: { type_rapport: string; periode: string; titre?: string }): Promise<RapportData> => {
-      return apiFetch<RapportData>('/rapports/generate', {
+      return mutate(() => apiFetch<RapportData>('/rapports/generate', {
         method: 'POST',
         body: JSON.stringify(params),
-      });
+      }));
     },
   },
 };

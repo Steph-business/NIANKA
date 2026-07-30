@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Bell, CheckCircle2, AlertTriangle, Info, Truck, Check, Sparkles, RefreshCw } from 'lucide-react';
 import { api, NotificationItem } from '@/lib/api';
+import { libelleGrade } from '@/lib/grades';
 
 /** Habillage visuel dérivé du type de notification renvoyé par l'API. */
 const STYLE_PAR_TYPE: Record<string, { titre: string; icon: typeof Bell; color: string; bg: string }> = {
@@ -150,7 +151,7 @@ export default function CooperativeNotificationsPage() {
                   </p>
                   {n.scan && (
                     <div style={{ display: 'flex', gap: '14px', marginTop: '8px', fontSize: '11.5px', fontWeight: 700, color: '#1a6b0a' }}>
-                      <span>Grade {n.scan.grade_ia}</span>
+                      <span>{libelleGrade(n.scan.grade_ia).label}</span>
                       <span>KOR {n.scan.score_kor ?? '—'} lbs</span>
                       <span>Humidité {n.scan.humidite ?? '—'}%</span>
                     </div>

@@ -24,7 +24,7 @@ export const PrintableCertificate: React.FC<PrintableCertificateProps> = ({ lot 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #1a6b0a', paddingBottom: '16px', marginBottom: '24px' }}>
         <div>
           <div style={{ fontSize: '10px', fontWeight: 900, color: '#1a6b0a', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-            NIANKA — FICHE TECHNIQUE USINEUR
+            NIANKA FICHE TECHNIQUE USINEUR
           </div>
           <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '6px 0 4px' }}>
             FICHE DE DÉCORTICAGE & RENDEMENT
@@ -77,8 +77,8 @@ export const PrintableCertificate: React.FC<PrintableCertificateProps> = ({ lot 
         </div>
         <div style={{ fontSize: '12px', fontWeight: 800, marginTop: '12px', color: lot.verdict_conforme ? '#166534' : '#991B1B' }}>
           {lot.verdict_conforme
-            ? `✓ Arbitrage IA conforme — écart KOR de ${lot.delta_kor} lbs entre la collecte et le déchargement.`
-            : `⚠ Écart détecté par l'arbitrage IA — ${lot.delta_kor} lbs entre la collecte et le déchargement.`}
+            ? `✓ Arbitrage conforme écart KOR de ${lot.delta_kor} lbs entre la collecte et le déchargement.`
+            : `⚠ Écart détecté par l'arbitrage IA ${lot.delta_kor} lbs entre la collecte et le déchargement.`}
         </div>
       </div>
 
@@ -86,7 +86,7 @@ export const PrintableCertificate: React.FC<PrintableCertificateProps> = ({ lot 
         <div style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.6 }}>
           Ce document certifie le résultat de l&apos;arbitrage IA réalisé à l&apos;entrepôt central pour le lot susmentionné.
           <br />
-          Délivré le {date} — Côte d&apos;Ivoire
+          Délivré le {date} Côte d&apos;Ivoire
         </div>
       </div>
     </div>

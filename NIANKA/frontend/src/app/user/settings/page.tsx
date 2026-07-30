@@ -43,7 +43,7 @@ export default function SettingsPage() {
     router.push('/login');
   };
 
-  /** Enregistre réellement le profil en base — l'ancienne version affichait
+  /** Enregistre réellement le profil en base l'ancienne version affichait
    * « mis à jour en base de données » sans jamais appeler l'API. */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -265,7 +265,7 @@ export default function SettingsPage() {
                   <h3 style={{ fontSize: '17px', fontWeight: 900, color: '#0F172A', margin: 0 }}>Plan Agent NIANKA</h3>
                 </div>
                 <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, marginBottom: '24px', fontWeight: 500 }}>
-                  Accès illimité au moteur d&apos;analyse IA MobileNetV3 et synchronisation terrain Supabase.
+                  Accès illimité au moteur d&apos;analyse MobileNetV3 et synchronisation terrain Supabase.
                 </p>
 
                 <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '10px', color: '#64748B', fontWeight: 600 }}>

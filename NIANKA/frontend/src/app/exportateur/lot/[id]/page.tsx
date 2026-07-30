@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, CheckCircle2, Package, Download, FileText, Globe, Award, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, CheckCircle2, Package, Download, FileText, Globe, Award, AlertTriangle, Route } from 'lucide-react';
 import { api, LotCertifie } from '@/lib/api';
 import styles from './page.module.css';
 import { PrintableBonDeLivraison } from './PrintableBonDeLivraison';
@@ -22,7 +23,7 @@ const PrintableCertificate: React.FC<{ lot: LotCertifie }> = ({ lot }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #1a6b0a', paddingBottom: '16px', marginBottom: '24px' }}>
         <div>
           <div style={{ fontSize: '10px', fontWeight: 900, color: '#1a6b0a', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-            RÉPUBLIQUE DE CÔTE D&apos;IVOIRE — MINISTÈRE DE L&apos;AGRICULTURE
+            RÉPUBLIQUE DE CÔTE D&apos;IVOIRE MINISTÈRE DE L&apos;AGRICULTURE
           </div>
           <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '6px 0 4px' }}>
             CERTIFICAT PHYTOSANITAIRE D&apos;EXPORTATION
@@ -79,7 +80,7 @@ const PrintableCertificate: React.FC<{ lot: LotCertifie }> = ({ lot }) => {
         <div style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.6 }}>
           Ce document certifie le résultat de l&apos;arbitrage IA réalisé à l&apos;entrepôt central pour le lot susmentionné, en vue de son exportation internationale.
           <br />
-          Délivré le {date} — Côte d&apos;Ivoire
+          Délivré le {date} Côte d&apos;Ivoire
         </div>
       </div>
     </div>
@@ -143,30 +144,12 @@ export default function LotDetailsPage() {
     <div className={styles.pageWrapper}>
       <style jsx global>{`
         @media print {
-          body * {
-            visibility: hidden;
-          }
-          .printable-area, .printable-area * {
-            visibility: visible;
-          }
-          .printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 20px !important;
-            max-width: 100% !important;
-            max-height: 100% !important;
-            overflow: visible !important;
-          }
           .print-hidden {
-            display: none;
+            display: none !important;
           }
         }
       `}</style>
+
 
       {/* Header avec Retour */}
       <div className={`${styles.header} print-hidden`}>
@@ -175,7 +158,7 @@ export default function LotDetailsPage() {
         </button>
         <div>
           <h1 className={styles.title}>
-            Dossier d&apos;Exportation #{lot.numero_bordereau}
+            Dossier d&apos;Exportation {lot.numero_bordereau}
             <Globe size={22} color="#1a6b0a" />
           </h1>
           <div className={styles.subtitle}>
@@ -252,6 +235,10 @@ export default function LotDetailsPage() {
             <button onClick={() => handlePrint('delivery_note')} className={`${styles.actionButton} ${styles.secondaryAction}`}>
               <FileText size={18} /> Bon de Livraison (Douane)
             </button>
+
+            <Link href={`/lot/${lot.bordereau_id}/parcours`} className={`${styles.actionButton} ${styles.secondaryAction}`} style={{ textDecoration: 'none' }}>
+              <Route size={18} /> Voir le Parcours Complet
+            </Link>
           </div>
         </div>
       </div>

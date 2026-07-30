@@ -35,16 +35,19 @@
   justify-content: center;
   align-items: center;
   padding: 22px;
-  z-index: 40;
+  z-index: 9999;
+  overflow-y: auto;
 }
 
 .modalCard {
   width: min(100%, 720px);
+  max-height: 88vh;
+  overflow-y: auto;
   background-color: #ffffff;
   border-radius: 28px;
   padding: 28px;
   box-shadow: 0 28px 80px rgba(15, 23, 42, 0.12);
-  overflow: hidden;
+  margin: auto;
 }
 
 .modalHeader {

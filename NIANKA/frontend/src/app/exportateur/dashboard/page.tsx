@@ -45,26 +45,20 @@ export default function ExportateurDashboard() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1280px' }}>
       <style jsx global>{`
         @media print {
-          body * {
-            visibility: hidden;
-          }
-          .printable-area, .printable-area * {
-            visibility: visible;
-          }
-          .printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+          .modal-backdrop-print {
+            position: absolute !important;
+            inset: 0 !important;
+            background: #ffffff !important;
+            backdrop-filter: none !important;
+            padding: 0 !important;
+            z-index: 99999 !important;
           }
           .certificate-page {
             page-break-after: always;
           }
-          .print-hidden {
-            display: none !important;
-          }
         }
       `}</style>
+
       
       {/* Header */}
       <div>
@@ -135,7 +129,7 @@ export default function ExportateurDashboard() {
             {lots.map((lot, idx) => (
               <tr key={lot.arbitrage_id} style={{ borderBottom: idx < lots.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
                 <td style={{ padding: '18px 16px', fontSize: '13.5px', fontWeight: 800, color: '#1a6b0a' }}>
-                  #{lot.numero_bordereau}
+                  {lot.numero_bordereau}
                   <div style={{ fontSize: '10.5px', fontWeight: 500, color: '#64748B' }}>{lot.nom_cooperative || '—'}</div>
                 </td>
                 <td style={{ padding: '18px 16px', fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>{lot.nom_entrepot || 'Entrepôt central'}</td>
@@ -195,14 +189,15 @@ export default function ExportateurDashboard() {
         <div style={{
           position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.72)', backdropFilter: 'blur(6px)',
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9990, padding: '20px',
-        }} className="print-hidden">
+        }} onClick={() => setPrintMode(null)} className="modal-backdrop-print">
            <div style={{
             backgroundColor: '#fff', borderRadius: '24px', padding: '36px',
             maxWidth: '720px', width: '100%', boxShadow: '0 30px 60px rgba(0,0,0,0.25)',
             maxHeight: '92vh', overflowY: 'auto', border: '2.5px solid #1a6b0a',
-          }}><PrintableSingleCertificate lot={lotToPrint} /></div>
+          }} onClick={e => e.stopPropagation()}><PrintableSingleCertificate lot={lotToPrint} /></div>
         </div>
       )}
+
     </div>
   );
 }

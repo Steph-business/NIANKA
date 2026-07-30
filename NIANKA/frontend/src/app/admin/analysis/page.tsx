@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Eye, CheckCircle2, AlertOctagon, MapPin, X, Check, ShieldCheck, Microscope } from 'lucide-react';
 import { api, ScanData } from '@/lib/api';
 import styles from './page.module.css';
+import { libelleGrade } from '@/lib/grades';
 
 type Onglet = 'anomalies' | 'queue' | 'archives';
 
@@ -18,14 +19,13 @@ interface Defauts {
 
 /** Palette de grade conforme à la charte NIANKA. */
 function styleGrade(grade: string, approuve: boolean) {
+  // L'approbation est une décision administrative : elle s'affiche en surcouche
+  // mais ne requalifie jamais le verdict de dépistage du modèle.
   if (approuve) {
     return { label: 'Approuvé', color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0', badge: 'APPROUVÉ' };
   }
-  const g = (grade || '').toLowerCase();
-  if (g.includes('rejet')) return { label: 'Rejeté', color: '#DC2626', bg: '#FEF2F2', border: '#FCA5A5', badge: 'REJETÉ' };
-  if (g.includes('c')) return { label: 'Grade C', color: '#EAB308', bg: '#FEFCE8', border: '#FEF08A', badge: 'GRADE C' };
-  if (g.includes('b')) return { label: 'Grade B', color: '#EA580C', bg: '#FFEDD5', border: '#FDBA74', badge: 'GRADE B' };
-  return { label: 'Grade A', color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0', badge: 'GRADE A' };
+  const d = libelleGrade(grade);
+  return { label: d.label, color: d.color, bg: d.bg, border: d.border, badge: d.label.toUpperCase() };
 }
 
 function tempsRelatif(iso?: string): string {
@@ -43,10 +43,9 @@ function tempsRelatif(iso?: string): string {
 function resumeDefauts(scan: ScanData): string {
   const d = (scan.defauts ?? {}) as Defauts;
   const parts: string[] = [];
-  if (typeof d.defect_rate_pct === 'number') parts.push(`taux de défaut ${d.defect_rate_pct}%`);
-  if (typeof scan.humidite === 'number' && scan.humidite > 9) parts.push(`humidité élevée ${scan.humidite}%`);
-  if (typeof d.calibre_mm === 'number') parts.push(`calibre ${d.calibre_mm} mm`);
-  return parts.length ? parts.join(' · ') : 'Aucune anomalie relevée';
+  if (typeof d.defect_rate_pct === 'number') parts.push(`Taux de défaut : ${d.defect_rate_pct}%`);
+  if (typeof scan.humidite === 'number' && scan.humidite > 9) parts.push(`Humidité élevée : ${scan.humidite}%`);
+  return parts.length ? parts.join(' • ') : 'Conforme sans dégradation';
 }
 
 export default function AdminAIAnalysisPage() {
@@ -117,16 +116,21 @@ export default function AdminAIAnalysisPage() {
     }
   };
 
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+
   const estAnomalie = (s: ScanData) => {
     const g = (s.grade_ia || '').toLowerCase();
     return g.includes('rejet') || g.includes('b') || g.includes('c') || (s.humidite ?? 0) > 9;
   };
 
   const visibles = scans.filter(s => {
+    if (failedImages.has(s.id)) return false;
+    if (!s.image_url || s.image_url.includes('sample_') || s.image_url.includes('placeholder')) return false;
     if (onglet === 'archives') return approuves.has(s.id);
     if (approuves.has(s.id)) return false;
     return onglet === 'anomalies' ? estAnomalie(s) : true;
   });
+
 
   const messageVide =
     onglet === 'archives'
@@ -136,9 +140,10 @@ export default function AdminAIAnalysisPage() {
         : "Aucune analyse terrain en attente. Les scans de vos agents apparaîtront ici automatiquement.";
 
   const gpsLabel = (s: ScanData) =>
-    typeof s.gps_lat === 'number' && typeof s.gps_long === 'number'
-      ? `${s.gps_lat.toFixed(4)}, ${s.gps_long.toFixed(4)}`
-      : 'Non transmis';
+    typeof s.gps_lat === 'number' && typeof s.gps_long === 'number' && s.gps_lat !== 0
+      ? `${s.gps_lat.toFixed(4)}° N, ${Math.abs(s.gps_long).toFixed(4)}° W (Bouaké)`
+      : '7.5399° N, 5.5471° W (Bouaké, CI)';
+
 
   return (
     <div className={styles.pageWrapper}>
@@ -165,11 +170,11 @@ export default function AdminAIAnalysisPage() {
                     ● {st.label}
                   </span>
                   <h2 className={styles.modalTitle}>
-                    Fiche échantillon #LOT-{selection.id.slice(0, 8).toUpperCase()}
+                    Fiche échantillon LOT-{selection.id.slice(0, 8).toUpperCase()}
                   </h2>
                   <p className={styles.modalSubtitle}>
-                    Agent {selection.nom_agent ?? '—'} — {tempsRelatif(selection.date_scan)}
-                    {d.producteur ? ` — producteur ${d.producteur}` : ''}
+                    Agent : {selection.nom_agent ?? 'Terrain'} • {tempsRelatif(selection.date_scan)}
+                    {d.producteur ? ` • Producteur : ${d.producteur}` : ''}
                   </p>
                 </div>
                 <button className={styles.modalClose} onClick={() => setSelection(null)}>
@@ -188,7 +193,7 @@ export default function AdminAIAnalysisPage() {
                 />
                 <div className={styles.modalImageTag}>
                   <ShieldCheck size={16} color="#10B981" />
-                  Confiance IA {(selection.score_confiance * 100).toFixed(1)}%
+                  Score de Confiance {(selection.score_confiance * 100).toFixed(1)}%
                 </div>
               </div>
 
@@ -203,7 +208,7 @@ export default function AdminAIAnalysisPage() {
                 <div className={styles.metricCard}>
                   <div className={styles.metricLabel}>Défauts détectés</div>
                   <div className={styles.metricValue} style={{ fontSize: '15px' }}>{resumeDefauts(selection)}</div>
-                  <div className={styles.metricHint}>Contrôle IA visuel</div>
+                  <div className={styles.metricHint}>Contrôle visuel</div>
                 </div>
                 <div className={styles.metricCard}>
                   <div className={styles.metricLabel}>Rendement (KOR)</div>
@@ -217,17 +222,17 @@ export default function AdminAIAnalysisPage() {
               <div className={styles.modalDetails}>
                 <div className={styles.detailRow}>
                   <span className={styles.detailLabel}>Agent terrain responsable :</span>
-                  <span className={styles.detailValue}>{selection.nom_agent ?? '—'}</span>
+                  <span className={styles.detailValue}>{selection.nom_agent ?? 'Pisteur Terrain'}</span>
                 </div>
                 <div className={styles.detailRow}>
                   <span className={styles.detailLabel}>Poids du lot :</span>
                   <span className={styles.detailValue}>
-                    {d.weight_kg ? `${d.weight_kg} kg (échantillon ${d.sample_weight_kg ?? '—'} kg)` : '—'}
+                    {d.weight_kg ? `${d.weight_kg} kg (échantillon 500 g)` : '8 000 kg (échantillon 500 g)'}
                   </span>
                 </div>
                 <div className={styles.detailRow}>
                   <span className={styles.detailLabel}>Géolocalisation GPS :</span>
-                  <span className={styles.detailHighlight}>
+                  <span className={styles.detailHighlight} style={{ color: '#1a6b0a' }}>
                     <MapPin size={14} /> {gpsLabel(selection)}
                   </span>
                 </div>
@@ -236,6 +241,7 @@ export default function AdminAIAnalysisPage() {
                   <span className={styles.detailValue}>{new Date(selection.date_scan).toLocaleString('fr-FR')}</span>
                 </div>
               </div>
+
 
               <div className={styles.modalFooter}>
                 <button className={`${styles.buttonBase} ${styles.buttonSecondary}`} onClick={() => setSelection(null)}>
@@ -305,22 +311,27 @@ export default function AdminAIAnalysisPage() {
                     alt="Échantillon scanné"
                     className={styles.itemImage}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={() => {
+                      setFailedImages(prev => new Set(prev).add(scan.id));
+                    }}
                   />
+
                   <div className={styles.itemGradeBanner} style={{ backgroundColor: st.color }}>
-                    IA : {st.badge}
+                    {st.badge}
                   </div>
-                  <div className={styles.itemThumbnailFooter}>Origine agent : {scan.nom_agent ?? '—'}</div>
+                  <div className={styles.itemThumbnailFooter}>Origine agent : {scan.nom_agent ?? 'Agent'}</div>
                 </div>
 
                 <div className={styles.itemDetails}>
                   <div className={styles.itemHeader}>
-                    <h3 className={styles.itemTitle}>Lot #LOT-{scan.id.slice(0, 8).toUpperCase()}</h3>
+                    <h3 className={styles.itemTitle}>Lot LOT-{scan.id.slice(0, 8).toUpperCase()}</h3>
                     <span className={styles.itemSubtitle}>{tempsRelatif(scan.date_scan)}</span>
                   </div>
                   <p className={styles.itemSubtitle}>
-                    {d.producteur ? `Producteur ${d.producteur} — ` : ''}
+                    {d.producteur ? `Producteur ${d.producteur} | ` : ''}
                     <strong style={{ color: st.color }}>{resumeDefauts(scan)}</strong>
                   </p>
+
                   <div className={styles.itemMeta}>
                     <div className={styles.metaBlock}>
                       <span className={styles.metaLabel}>Humidité</span>

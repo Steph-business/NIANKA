@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, CheckCircle2, Package, Download, FileText, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, CheckCircle2, Package, Download, FileText, AlertTriangle, Route } from 'lucide-react';
 import { api, LotCertifie } from '@/lib/api';
 import styles from './page.module.css';
 import { PrintableCertificate } from './PrintableCertificate';
@@ -68,30 +69,12 @@ export default function LotDetailsPage() {
     <div className={styles.pageWrapper}>
       <style jsx global>{`
         @media print {
-          body * {
-            visibility: hidden;
-          }
-          .printable-area, .printable-area * {
-            visibility: visible;
-          }
-          .printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 20px !important;
-            max-width: 100% !important;
-            max-height: 100% !important;
-            overflow: visible !important;
-          }
           .print-hidden {
-            display: none;
+            display: none !important;
           }
         }
       `}</style>
+
 
       {/* Header avec Retour */}
       <div className={`${styles.header} print-hidden`}>
@@ -100,7 +83,7 @@ export default function LotDetailsPage() {
         </button>
         <div>
           <h1 className={styles.title}>
-            Fiche de Lot #{lot.numero_bordereau}
+            Fiche de Lot {lot.numero_bordereau}
           </h1>
           <div className={styles.subtitle}>
             <span className={styles.statusBadge} style={{
@@ -184,6 +167,10 @@ export default function LotDetailsPage() {
             <button onClick={() => handlePrint('full_report')} className={`${styles.actionButton} ${styles.secondaryAction}`}>
               <FileText size={18} /> Voir le Rapport Complet
             </button>
+
+            <Link href={`/lot/${lot.bordereau_id}/parcours`} className={`${styles.actionButton} ${styles.secondaryAction}`} style={{ textDecoration: 'none' }}>
+              <Route size={18} /> Voir le Parcours Complet
+            </Link>
           </div>
         </div>
       </div>

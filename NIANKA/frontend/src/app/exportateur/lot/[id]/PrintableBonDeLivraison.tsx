@@ -57,7 +57,7 @@ export const PrintableBonDeLivraison: React.FC<{ lot: LotCertifie }> = ({ lot })
           <tr>
             <td style={{ padding: '14px 12px', borderBottom: '1px solid #E2E8F0' }}>
               <div style={{ fontWeight: 900 }}>Noix de Cajou Brutes (Anacarde)</div>
-              <div style={{ fontSize: '12px', color: '#64748B' }}>Lot de Référence: #{lot.numero_bordereau}</div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>Lot de Référence: {lot.numero_bordereau}</div>
             </td>
             <td style={{ padding: '14px 12px', textAlign: 'center', fontWeight: 800, borderBottom: '1px solid #E2E8F0' }}>{lot.volume_tonnes} Tonnes</td>
             <td style={{ padding: '14px 12px', textAlign: 'right', fontWeight: 900, color: '#1a6b0a', borderBottom: '1px solid #E2E8F0' }}>{lot.grade_lot || '—'}</td>
@@ -78,7 +78,7 @@ export const PrintableBonDeLivraison: React.FC<{ lot: LotCertifie }> = ({ lot })
         <div style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.6 }}>
           Ce document atteste de la livraison des marchandises décrites ci-dessus.
           <br />
-          Généré par la plateforme NIANKA — {date}
+          Généré par la plateforme NIANKA {date}
         </div>
       </div>
     </div>

@@ -27,8 +27,8 @@ export default function EntrepotSettingsPage() {
   }, []);
 
   /** Le nom est réellement persisté en base (PUT /auth/me). La capacité de
-   * stockage n'a pas d'équivalent côté serveur — aucune logique métier ne la
-   * consulte actuellement — elle est donc sauvegardée localement. */
+   * stockage n'a pas d'équivalent côté serveur aucune logique métier ne la
+   * consulte actuellement elle est donc sauvegardée localement. */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);

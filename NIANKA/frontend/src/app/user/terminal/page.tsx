@@ -159,15 +159,15 @@ function TerminalScreen1() {
 function TerminalScreen2() {
   return (
     <div style={{ backgroundColor: '#ffffff', color: '#0f172a', borderRadius: '16px', padding: '24px' }}>
-      <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>AI Diagnostic Terminal — Cashew Lot #2024-001-082</h2>
+      <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>AI Diagnostic Terminal Cashew Lot #2024-001-082</h2>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <div style={{ height: '240px', backgroundColor: '#e2e8f0', borderRadius: '12px', position: 'relative', overflow: 'hidden' }}>
           <Image src="/images/items/anacarde2.png" alt="Anacarde" fill style={{ objectFit: 'cover' }} />
         </div>
         <div>
           <div style={{ fontSize: '28px', fontWeight: 900, color: '#006947' }}>Grade A (98.2%)</div>
-          <div style={{ marginTop: '12px', color: '#ef4444', fontWeight: 800 }}>🔴 Humidité Élevée — CRITIQUE</div>
-          <div style={{ marginTop: '4px', color: '#16a34a', fontWeight: 800 }}>🟢 Corps Étrangers — MINEUR</div>
+          <div style={{ marginTop: '12px', color: '#ef4444', fontWeight: 800 }}>🔴 Humidité Élevée CRITIQUE</div>
+          <div style={{ marginTop: '4px', color: '#16a34a', fontWeight: 800 }}>🟢 Corps Étrangers MINEUR</div>
           <button style={{ marginTop: '20px', padding: '12px 24px', backgroundColor: '#006947', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: 800 }}>
             Conforme Export EU
           </button>
@@ -197,7 +197,7 @@ function TerminalScreen4() {
       <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '16px' }}>Historique des analyses Agent</h2>
       <p style={{ color: '#64748b' }}>Filtres: 7 derniers jours • Tous les grades</p>
       <div style={{ marginTop: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
-        LOT-00204-001C — Koffi Kouassi — Grade A (Synchronisé)
+        LOT-00204-001C Koffi Kouassi Grade A (Synchronisé)
       </div>
     </div>
   );
