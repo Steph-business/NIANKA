@@ -137,7 +137,7 @@ export default function CooperativeDashboard() {
 
     setIsSending(true);
     try {
-      await api.etapes.createTransfer({
+      const result = await api.etapes.createTransfer({
         scan_initial_id: selectedScanIds[0],
         entrepot_id: transferForm.entrepotId,
         immatriculation_camion: transferForm.truck,
@@ -146,13 +146,13 @@ export default function CooperativeDashboard() {
         grade_lot: scanPrincipal?.grade_ia || 'Grade A',
       });
 
-      await loadData();
-      setTransferSuccess(true);
+      // Fermeture instantanée de la modale + notification toast immédiate
+      setShowTransferModal(false);
       setSelectedScanIds([]);
-      setTimeout(() => {
-        setTransferSuccess(false);
-        setShowTransferModal(false);
-      }, 1800);
+      showNotification(`Bordereau ${result.numero_bordereau || 'de transfert'} créé et expédié avec succès !`);
+      
+      // Actualisation des données en arrière-plan sans bloquer l'UI
+      loadData();
     } catch (err) {
       setTransferError(err instanceof Error ? err.message : 'Erreur lors de la création du bordereau.');
     } finally {
