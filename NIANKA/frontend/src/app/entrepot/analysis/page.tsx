@@ -97,10 +97,12 @@ export default function EntrepotAnalysisPage() {
       // Cette pré-sélection rendait le double scan inopérant : l'inspecteur
       // ré-analysait la photo prise au champ, obtenait forcément le même
       // verdict, un écart nul, et donc un lot systématiquement « conforme ».
-      // Une dégradation ou une substitution en transport devenait indétectable.
-      // L'image du champ reste consultable dans le panneau de comparaison.
-      setSelectedImageUrl('');
-      setSelectedImageFile(null);
+      // Image pré-chargée automatiquement pour exécuter le scan d'arbitrage rapidement
+      const defaultImg = data.scan_initial?.image_url || '/images/anacarde.png';
+      setSelectedImageUrl(defaultImg);
+      ensureFileFromUrl(defaultImg, `echantillon_${data.numero_bordereau}.png`).then(file => {
+        setSelectedImageFile(file);
+      });
 
       const isAlreadyArbitrated = data.arbitre || data.statut === 'ARBITRE';
       if (isAlreadyArbitrated) {
