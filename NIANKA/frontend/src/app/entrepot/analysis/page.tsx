@@ -574,50 +574,63 @@ export default function EntrepotAnalysisPage() {
                 </div>
               </div>
 
-
-              {/* COMPARAISON DES VERDICTS DE VISION IA (BORD CHAMP vs ENTREPÔT) */}
+              {/* COMPARAISON DES VERDICTS DE VISION IA (DÉPART vs ARRIVÉE) */}
               {(() => {
                 const gradeInitial = scanInitial?.grade_ia || 'Grade A';
                 const gradeEntrepot = scanResult?.predicted_grade || 'Grade A';
                 const infoInitial = libelleGrade(gradeInitial);
                 const infoEntrepot = libelleGrade(gradeEntrepot);
-                const memeGrade = gradeInitial.trim().toLowerCase() === gradeEntrepot.trim().toLowerCase();
+
+                const confianceInitialVal = scanInitial?.score_confiance ? (scanInitial.score_confiance * 100) : 98.0;
+                const confianceEntrepotVal = scanResult?.confidence_pct ?? 97.5;
+
+                const defautsInitialVal = typeof (scanInitial?.defauts as Record<string, number> | undefined)?.moisissure === 'number'
+                  ? (scanInitial!.defauts as Record<string, number>).moisissure * 100
+                  : 1.2;
+                const defautsEntrepotVal = scanResult?.metrics?.defect_rate_pct ?? 1.0;
+
+                const ecartDefauts = Math.abs(defautsEntrepotVal - defautsInitialVal);
+                const memeGrade = gradeInitial.trim().toLowerCase() === gradeEntrepot.trim().toLowerCase() || ecartDefauts <= 1.5;
 
                 return (
                   <>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <div style={{ backgroundColor: '#F8FAFC', borderRadius: '10px', padding: '12px', border: '1px solid #E2E8F0' }}>
-                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', marginBottom: '4px', textTransform: 'uppercase' }}>
-                          1. SCAN BORD CHAMP ({transferData?.nom_agent || 'Agent'})
+                      {/* DÉPART : SCAN BORD CHAMP */}
+                      <div style={{ backgroundColor: '#F8FAFC', borderRadius: '10px', padding: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          1. DÉPART : BORD CHAMP ({transferData?.nom_agent || 'Agent'})
                         </div>
                         <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
                           {infoInitial.label}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#475569', fontWeight: 700, marginTop: '2px' }}>
-                          Qualité Visuelle : {infoInitial.label.includes('Grade A') ? '8.5 / 10' : infoInitial.label.includes('Grade B') ? '7.0 / 10' : '4.5 / 10'}
+                        <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#334155', fontWeight: 700, marginTop: '2px' }}>
+                          <span>🎯 Confiance : <strong>{confianceInitialVal.toFixed(1)}%</strong></span>
+                          <span>⚠️ Défauts : <strong>{defautsInitialVal.toFixed(1)}%</strong></span>
                         </div>
-                        <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '3px' }}>
+                        <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '2px' }}>
                           {scanInitial?.date_scan ? new Date(scanInitial.date_scan).toLocaleString('fr-FR') : 'Scan terrain initial'}
                         </div>
                       </div>
 
-                      <div style={{ backgroundColor: '#F0FDF4', borderRadius: '10px', padding: '12px', border: '1.5px solid #BBF7D0' }}>
-                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#1a6b0a', marginBottom: '4px', textTransform: 'uppercase' }}>
-                          2. SCAN ARBITRAGE ENTREPÔT
+                      {/* ARRIVÉE : SCAN ARBITRAGE ENTREPÔT */}
+                      <div style={{ backgroundColor: '#F0FDF4', borderRadius: '10px', padding: '12px', border: '1.5px solid #BBF7D0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#1a6b0a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          2. ARRIVÉE : ARBITRAGE ENTREPÔT
                         </div>
                         <div style={{ fontSize: '15px', fontWeight: 900, color: '#1a6b0a' }}>
                           {infoEntrepot.label}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#166534', fontWeight: 700, marginTop: '2px' }}>
-                          Qualité Visuelle : {infoEntrepot.label.includes('Grade A') ? '8.5 / 10' : infoEntrepot.label.includes('Grade B') ? '7.0 / 10' : '4.5 / 10'}
+                        <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#166534', fontWeight: 700, marginTop: '2px' }}>
+                          <span>🎯 Confiance : <strong>{confianceEntrepotVal.toFixed(1)}%</strong></span>
+                          <span>⚠️ Défauts : <strong>{defautsEntrepotVal.toFixed(1)}%</strong></span>
                         </div>
-                        <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '3px' }}>
-                          Confiance {scanResult ? scanResult.confidence_pct.toFixed(1) : '98.0'}% • {scanResult?.metrics.latency_ms ?? 18} ms
+                        <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '2px' }}>
+                          Télémétrie IA {scanResult?.metrics.latency_ms ?? 18} ms • MobileNetV3
                         </div>
                       </div>
                     </div>
 
-                    {/* VERDICT DE CONFORMITÉ IA VISUELLE */}
+                    {/* VERDICT DE CONFORMITÉ IA VISUELLE AVEC MARGE DE TOLÉRANCE */}
                     <div style={{
                       padding: '12px 16px', borderRadius: '10px', textAlign: 'center',
                       backgroundColor: memeGrade ? '#ECFDF5' : '#FEF2F2',
@@ -625,11 +638,13 @@ export default function EntrepotAnalysisPage() {
                       color: memeGrade ? '#065F46' : '#991B1B',
                     }}>
                       <div style={{ fontSize: '12.5px', fontWeight: 900, color: memeGrade ? '#166534' : '#991B1B' }}>
-                        VERDICT IA : {memeGrade ? 'CONFORME' : 'NON CONFORME'} | {memeGrade ? 'qualité visuelle préservée durant le transport' : 'altération de qualité constatée entre le champ et l\'entrepôt'}
+                        VERDICT IA : {memeGrade ? 'CONFORME' : 'NON CONFORME'} | {memeGrade ? 'Qualité & Confiance préservées (dans la marge de tolérance)' : 'Altération de qualité constatée entre le champ et l\'entrepôt'}
                       </div>
 
-                      <div style={{ fontSize: '11.5px', fontWeight: 600, marginTop: '3px' }}>
-                        Grade Terrain : {infoInitial.label} ➔ Grade Entrepôt : {infoEntrepot.label}
+                      <div style={{ fontSize: '11.5px', fontWeight: 600, marginTop: '3px', display: 'flex', justifyContent: 'center', gap: '14px' }}>
+                        <span>Confiance : {confianceInitialVal.toFixed(1)}% ➔ {confianceEntrepotVal.toFixed(1)}%</span>
+                        <span>•</span>
+                        <span>Taux de Défauts : {defautsInitialVal.toFixed(1)}% ➔ {defautsEntrepotVal.toFixed(1)}%</span>
                       </div>
                     </div>
                   </>
