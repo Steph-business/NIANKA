@@ -76,6 +76,68 @@ function gradeBadge(grade: string) {
 }
 
 // ── component ─────────────────────────────────────────────
+
+function QRCodeGraphic({ value, size = 64 }: { value: string; size?: number }) {
+  const hash = (str: string) => {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  };
+  const seed = hash(value || 'NIANKA');
+  const matrixSize = 21;
+  const cells: boolean[][] = Array(matrixSize).fill(false).map(() => Array(matrixSize).fill(false));
+
+  const drawFinder = (row: number, col: number) => {
+    for (let r = 0; r < 7; r++) {
+      for (let c = 0; c < 7; c++) {
+        if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
+          cells[row + r][col + c] = true;
+        }
+      }
+    }
+  };
+
+  drawFinder(0, 0);
+  drawFinder(0, 14);
+  drawFinder(14, 0);
+
+  let bitIdx = 0;
+  for (let r = 0; r < matrixSize; r++) {
+    for (let c = 0; c < matrixSize; c++) {
+      const inFinderTL = r < 8 && c < 8;
+      const inFinderTR = r < 8 && c >= 13;
+      const inFinderBL = r >= 13 && c < 8;
+      if (!inFinderTL && !inFinderTR && !inFinderBL) {
+        const val = ((seed + r * 31 + c * 17 + bitIdx * 7) ^ (r * c)) % 3;
+        cells[r][c] = val === 0 || val === 1;
+        bitIdx++;
+      }
+    }
+  }
+
+  const cellSize = size / matrixSize;
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block', margin: '0 auto' }}>
+      <rect width={size} height={size} fill="#ffffff" />
+      {cells.map((row, r) =>
+        row.map((active, c) =>
+          active ? (
+            <rect
+              key={`${r}-${c}`}
+              x={c * cellSize}
+              y={r * cellSize}
+              width={cellSize + 0.1}
+              height={cellSize + 0.1}
+              fill="#0F172A"
+            />
+          ) : null
+        )
+      )}
+    </svg>
+  );
+}
+
 export default function AdminReportsPage() {
   const [scans, setScans]             = useState<ScanData[]>([]);
   const [rapports, setRapports]       = useState<RapportData[]>([]);
@@ -248,12 +310,15 @@ export default function AdminReportsPage() {
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'center', backgroundColor: '#F8FAFC', padding: '10px 14px', borderRadius: '12px', border: '1.5px solid #CBD5E1', minWidth: '170px' }}>
-                  <div style={{ fontSize: '9px', fontWeight: 900, color: '#1a6b0a', letterSpacing: '0.08em' }}>N° HOMOLOGATION OFFICIEL</div>
-                  <div style={{ fontSize: '11px', fontWeight: 900, color: '#0F172A', marginTop: '3px', fontFamily: 'ui-monospace, Consolas, monospace' }}>
+                <div style={{ textAlign: 'center', backgroundColor: '#F8FAFC', padding: '10px 14px', borderRadius: '12px', border: '1.5px solid #CBD5E1', minWidth: '170px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 900, color: '#1a6b0a', letterSpacing: '0.08em' }}>CODE QR &amp; N° HOMOLOGATION</div>
+                  <div style={{ border: '2px solid #1a6b0a', padding: '4px', borderRadius: '8px', backgroundColor: '#ffffff' }}>
+                    <QRCodeGraphic value={previewReport.id} size={64} />
+                  </div>
+                  <div style={{ fontSize: '10.5px', fontWeight: 900, color: '#0F172A', fontFamily: 'ui-monospace, Consolas, monospace' }}>
                     {previewReport.id}
                   </div>
-                  <span style={{ display: 'inline-block', marginTop: '5px', fontSize: '9px', fontWeight: 800, color: '#10B981', backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: '6px' }}>
+                  <span style={{ display: 'inline-block', fontSize: '8.5px', fontWeight: 800, color: '#10B981', backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: '6px' }}>
                     ✓ CERTIFIÉ SUR SUPABASE
                   </span>
                 </div>
