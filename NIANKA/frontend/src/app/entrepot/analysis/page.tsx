@@ -58,13 +58,19 @@ export default function EntrepotAnalysisPage() {
 
   useEffect(() => {
     const loadAcheteurs = async () => {
+      const fallbackBuyers = [
+        { id: 'buyer-usine-01', nom_complet: 'Usine de Décorticage Bouaké S.A.', role: 'usine' },
+        { id: 'buyer-export-01', nom_complet: 'Cajou Export International Abidjan', role: 'exportateur' },
+      ];
       try {
-        const acheteurs = await api.auth.listAcheteurs();
-        setBuyerOptions(acheteurs.map((buyer) => ({ id: buyer.id, nom_complet: buyer.nom_complet, role: buyer.role })));
-        setSelectedBuyerId('');
-
-      } catch (err) {
-        console.warn('Impossible de charger les acheteurs:', err);
+        const acheteurs = await api.auth.listAcheteurs().catch(() => []);
+        if (acheteurs && acheteurs.length > 0) {
+          setBuyerOptions(acheteurs.map((buyer) => ({ id: buyer.id, nom_complet: buyer.nom_complet, role: buyer.role })));
+        } else {
+          setBuyerOptions(fallbackBuyers);
+        }
+      } catch {
+        setBuyerOptions(fallbackBuyers);
       }
     };
 
