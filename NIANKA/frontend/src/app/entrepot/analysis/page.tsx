@@ -450,7 +450,7 @@ export default function EntrepotAnalysisPage() {
               )}
 
               <button
-                onClick={() => setShowScanModal(true)}
+                onClick={handleStartScan}
                 disabled={isScanning || !transferData}
                 className={styles.scanButton}
               >
