@@ -574,79 +574,98 @@ export default function EntrepotAnalysisPage() {
                 </div>
               </div>
 
-              {/* COMPARAISON DES VERDICTS DE VISION IA (DÉPART vs ARRIVÉE) */}
+              {/* COMPARAISON DES VERDICTS DE VISION IA (EXACTEMENT 1ER SCAN vs 2ÈME SCAN) */}
               {(() => {
-                const gradeInitial = scanInitial?.grade_ia || 'Grade A';
-                const gradeEntrepot = scanResult?.predicted_grade || 'Grade A';
-                const infoInitial = libelleGrade(gradeInitial);
-                const infoEntrepot = libelleGrade(gradeEntrepot);
+                const gradeInitial = scanInitial?.grade_ia;
+                const gradeEntrepot = scanResult?.predicted_grade;
 
-                const confianceInitialVal = scanInitial?.score_confiance ? (scanInitial.score_confiance * 100) : 98.0;
-                const confianceEntrepotVal = scanResult?.confidence_pct ?? 97.5;
+                const infoInitial = gradeInitial ? libelleGrade(gradeInitial) : null;
+                const infoEntrepot = gradeEntrepot ? libelleGrade(gradeEntrepot) : null;
 
-                const defautsInitialVal = typeof (scanInitial?.defauts as Record<string, number> | undefined)?.moisissure === 'number'
-                  ? (scanInitial!.defauts as Record<string, number>).moisissure * 100
-                  : 1.2;
-                const defautsEntrepotVal = scanResult?.metrics?.defect_rate_pct ?? 1.0;
+                const rawConfInitial = scanInitial?.score_confiance;
+                const confianceInitialStr = typeof rawConfInitial === 'number'
+                  ? `${(rawConfInitial <= 1 ? rawConfInitial * 100 : rawConfInitial).toFixed(1)}%`
+                  : null;
 
-                const ecartDefauts = Math.abs(defautsEntrepotVal - defautsInitialVal);
-                const memeGrade = gradeInitial.trim().toLowerCase() === gradeEntrepot.trim().toLowerCase() || ecartDefauts <= 1.5;
+                const rawConfEntrepot = scanResult?.confidence_pct;
+                const confianceEntrepotStr = typeof rawConfEntrepot === 'number'
+                  ? `${rawConfEntrepot.toFixed(1)}%`
+                  : null;
+
+                const rawDefInitial = (scanInitial?.defauts as Record<string, number> | undefined)?.moisissure;
+                const defautsInitialStr = typeof rawDefInitial === 'number'
+                  ? `${(rawDefInitial <= 1 ? rawDefInitial * 100 : rawDefInitial).toFixed(1)}%`
+                  : null;
+
+                const rawDefEntrepot = scanResult?.metrics?.defect_rate_pct;
+                const defautsEntrepotStr = typeof rawDefEntrepot === 'number'
+                  ? `${rawDefEntrepot.toFixed(1)}%`
+                  : null;
+
+                const memeGrade = gradeInitial && gradeEntrepot
+                  ? gradeInitial.trim().toLowerCase() === gradeEntrepot.trim().toLowerCase()
+                  : true;
 
                 return (
                   <>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      {/* DÉPART : SCAN BORD CHAMP */}
+                      {/* DÉPART : RESULTAT EXACT DU 1ER SCAN (AGENT) */}
                       <div style={{ backgroundColor: '#F8FAFC', borderRadius: '10px', padding: '12px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          1. DÉPART : BORD CHAMP ({transferData?.nom_agent || 'Agent'})
+                          1. DÉPART : SCAN BORD CHAMP ({transferData?.nom_agent || 'Agent'})
                         </div>
                         <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
-                          {infoInitial.label}
+                          {infoInitial ? infoInitial.label : (gradeInitial || '—')}
                         </div>
-                        <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#334155', fontWeight: 700, marginTop: '2px' }}>
-                          <span>🎯 Confiance : <strong>{confianceInitialVal.toFixed(1)}%</strong></span>
-                          <span>⚠️ Défauts : <strong>{defautsInitialVal.toFixed(1)}%</strong></span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', fontSize: '11px', color: '#334155', fontWeight: 700, marginTop: '2px' }}>
+                          {confianceInitialStr && <span>🎯 Confiance : <strong>{confianceInitialStr}</strong></span>}
+                          {defautsInitialStr && <span>⚠️ Défauts : <strong>{defautsInitialStr}</strong></span>}
+                          {!confianceInitialStr && !defautsInitialStr && scanInitial?.score_kor && (
+                            <span>Rendement KOR : <strong>{scanInitial.score_kor.toFixed(1)} lbs</strong></span>
+                          )}
                         </div>
                         <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '2px' }}>
                           {scanInitial?.date_scan ? new Date(scanInitial.date_scan).toLocaleString('fr-FR') : 'Scan terrain initial'}
                         </div>
                       </div>
 
-                      {/* ARRIVÉE : SCAN ARBITRAGE ENTREPÔT */}
+                      {/* ARRIVÉE : RESULTAT EXACT DU 2ÈME SCAN (ENTREPÔT) */}
                       <div style={{ backgroundColor: '#F0FDF4', borderRadius: '10px', padding: '12px', border: '1.5px solid #BBF7D0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ fontSize: '10px', fontWeight: 800, color: '#1a6b0a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          2. ARRIVÉE : ARBITRAGE ENTREPÔT
+                          2. ARRIVÉE : SCAN ARBITRAGE ENTREPÔT
                         </div>
                         <div style={{ fontSize: '15px', fontWeight: 900, color: '#1a6b0a' }}>
-                          {infoEntrepot.label}
+                          {infoEntrepot ? infoEntrepot.label : (gradeEntrepot || 'Scan en attente...')}
                         </div>
-                        <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: '#166534', fontWeight: 700, marginTop: '2px' }}>
-                          <span>🎯 Confiance : <strong>{confianceEntrepotVal.toFixed(1)}%</strong></span>
-                          <span>⚠️ Défauts : <strong>{defautsEntrepotVal.toFixed(1)}%</strong></span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', fontSize: '11px', color: '#166534', fontWeight: 700, marginTop: '2px' }}>
+                          {confianceEntrepotStr && <span>🎯 Confiance : <strong>{confianceEntrepotStr}</strong></span>}
+                          {defautsEntrepotStr && <span>⚠️ Défauts : <strong>{defautsEntrepotStr}</strong></span>}
                         </div>
                         <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '2px' }}>
-                          Télémétrie IA {scanResult?.metrics.latency_ms ?? 18} ms • MobileNetV3
+                          {scanResult ? `Télémétrie IA ${scanResult.metrics.latency_ms ?? 18} ms • MobileNetV3` : 'Prêt pour l\'analyse d\'arbitrage'}
                         </div>
                       </div>
                     </div>
 
-                    {/* VERDICT DE CONFORMITÉ IA VISUELLE AVEC MARGE DE TOLÉRANCE */}
-                    <div style={{
-                      padding: '12px 16px', borderRadius: '10px', textAlign: 'center',
-                      backgroundColor: memeGrade ? '#ECFDF5' : '#FEF2F2',
-                      border: `1.5px solid ${memeGrade ? '#A7F3D0' : '#FCA5A5'}`,
-                      color: memeGrade ? '#065F46' : '#991B1B',
-                    }}>
-                      <div style={{ fontSize: '12.5px', fontWeight: 900, color: memeGrade ? '#166534' : '#991B1B' }}>
-                        VERDICT IA : {memeGrade ? 'CONFORME' : 'NON CONFORME'} | {memeGrade ? 'Qualité & Confiance préservées (dans la marge de tolérance)' : 'Altération de qualité constatée entre le champ et l\'entrepôt'}
-                      </div>
+                    {/* VERDICT DE CONFORMITÉ SUR LES DONNÉES RÉELLES DES SCANS */}
+                    {scanResult && (
+                      <div style={{
+                        padding: '12px 16px', borderRadius: '10px', textAlign: 'center',
+                        backgroundColor: memeGrade ? '#ECFDF5' : '#FEF2F2',
+                        border: `1.5px solid ${memeGrade ? '#A7F3D0' : '#FCA5A5'}`,
+                        color: memeGrade ? '#065F46' : '#991B1B',
+                      }}>
+                        <div style={{ fontSize: '12.5px', fontWeight: 900, color: memeGrade ? '#166534' : '#991B1B' }}>
+                          VERDICT IA : {memeGrade ? 'CONFORME' : 'NON CONFORME'} | {memeGrade ? 'Qualité visuelle & résultats scannés identiques entre le champ et l\'entrepôt' : 'Écart constaté entre le scan de départ et le scan d\'arrivée'}
+                        </div>
 
-                      <div style={{ fontSize: '11.5px', fontWeight: 600, marginTop: '3px', display: 'flex', justifyContent: 'center', gap: '14px' }}>
-                        <span>Confiance : {confianceInitialVal.toFixed(1)}% ➔ {confianceEntrepotVal.toFixed(1)}%</span>
-                        <span>•</span>
-                        <span>Taux de Défauts : {defautsInitialVal.toFixed(1)}% ➔ {defautsEntrepotVal.toFixed(1)}%</span>
+                        <div style={{ fontSize: '11.5px', fontWeight: 600, marginTop: '3px', display: 'flex', justifyContent: 'center', gap: '14px' }}>
+                          <span>Scan 1 (Champ) : {infoInitial?.label || gradeInitial || '—'}</span>
+                          <span>➔</span>
+                          <span>Scan 2 (Entrepôt) : {infoEntrepot?.label || gradeEntrepot || '—'}</span>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </>
                 );
               })()}
