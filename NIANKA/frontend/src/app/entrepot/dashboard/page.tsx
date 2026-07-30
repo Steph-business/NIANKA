@@ -27,6 +27,8 @@ export default function EntrepotDashboard() {
       setLoading(false);
     }
     loadData();
+    const interval = setInterval(loadData, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const enTransit = transfers.filter(t => !t.arbitre);

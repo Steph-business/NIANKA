@@ -65,6 +65,8 @@ export default function CooperativeDashboard() {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(loadData, 3000);
+
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('nianka_approved_lots');
       if (saved) {
@@ -76,6 +78,8 @@ export default function CooperativeDashboard() {
         }
       }
     }
+
+    return () => clearInterval(interval);
   }, []);
 
   const showNotification = (msg: string) => {

@@ -73,21 +73,27 @@ export default function AdminDashboard() {
   const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      api.etapes.getStats().catch(() => null),
-      api.etapes.getScans().catch(() => [] as ScanData[]),
-      api.auth.listPisteurs().catch(() => [] as UserProfile[]),
-    ]).then(([statsData, scansData, pisteursData]) => {
-      setStats(statsData);
-      setScans(scansData);
-      setPisteurs(pisteursData);
+    const fetchData = () => {
+      Promise.all([
+        api.etapes.getStats().catch(() => null),
+        api.etapes.getScans().catch(() => [] as ScanData[]),
+        api.auth.listPisteurs().catch(() => [] as UserProfile[]),
+      ]).then(([statsData, scansData, pisteursData]) => {
+        setStats(statsData);
+        setScans(scansData);
+        setPisteurs(pisteursData);
 
-      const terrain = scansData.filter(s => s.etape === 'collecte_terrain');
-      if (terrain.length > 0) {
-        setDernierScan(terrain[0]);
-        setShowToast(true);
-      }
-    });
+        const terrain = scansData.filter(s => s.etape === 'collecte_terrain');
+        if (terrain.length > 0) {
+          setDernierScan(terrain[0]);
+          setShowToast(true);
+        }
+      });
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const scansTerrain = scans.filter(s => s.etape === 'collecte_terrain');
